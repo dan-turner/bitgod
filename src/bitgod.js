@@ -129,6 +129,17 @@ BitGoD.prototype.getMinConfirms = function(minConfirms) {
   return minConfirms;
 };
 
+BitGoD.prototype.getMaxTransactions = function(maxTransactions) {
+  if (typeof(maxTranscations) == 'undefined') {
+    maxTransactions = 1;
+  }
+  maxTransactions = Number(maxTransactions);
+  if (maxTransactions !== 0 && maxTransactions !== 1) {
+    throw new Error('unsupported maxtransactions value');
+  }
+  return maxTransactions;
+};
+
 BitGoD.prototype.toBTC = function(satoshis) {
   return (satoshis / 1e8);
 };
@@ -265,6 +276,42 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   });
 };
 
+BitGoD.prototype.handleListTransactions = function(maxTransactions) {
+  this.ensureWallet();
+  var self = this;
+  maxTransactions = this.getMaxTransactions();
+
+  var txList = [];
+
+  return this.wallet.transactions()
+  .then(function(result) {
+    txList = txList.concat(result.transactions.map(function(tx) {
+      // Find the entry for 'this' wallet.
+      for (var index = 0; index < tx.entries.length; ++index) {
+        if (tx.entries[index].account == self.wallet.id()) {
+          tx.amount = self.toBTC(tx.entries[index].value);
+          break;
+        }
+      }
+
+      return {
+        account: '',
+        address: tx.address,
+        category:  'tbd',
+        amount:  tx.amount,
+        confirmations: tx.confirmations,
+        blockhash: '',
+        blockindex: 0,
+        blocktime: '',
+        txid: tx.id,
+        time: new Date(tx.date).getTime() / 1000,
+        timereceived: new Date(tx.date).getTime() / 1000,
+      };
+    }));
+    return txList;
+  });
+};
+
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   this.ensureWallet();
   var self = this;
@@ -343,6 +390,7 @@ BitGoD.prototype.run = function() {
   self.expose('listaccounts', self.handleListAccounts);
   self.expose('listunspent', self.handleListUnspent);
   self.expose('sendtoaddress', self.handleSendToAddress);
+  self.expose('listtransactions', self.handleListTransactions);
 
   // BitGo-specific methods
   self.expose('settoken', self.handleSetToken);
