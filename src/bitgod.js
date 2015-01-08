@@ -144,6 +144,26 @@ BitGoD.prototype.toBTC = function(satoshis) {
   return (satoshis / 1e8);
 };
 
+BitGoD.prototype.getNumber = function(val, defaultValue) {
+  if (typeof(val) === 'undefined') {
+    return defaultValue;
+  }
+  var result = Number(val);
+  if (isNaN(result)) {
+    throw this.error('value is not a number', -1);
+  }
+  return result;
+};
+
+BitGoD.prototype.getInteger = function(val, defaultValue) {
+  var number = this.getNumber(val, defaultValue);
+  var integer = parseInt(number);
+  if (integer != number) {
+    throw this.error('value is type real, expected int', -1);
+  }
+  return integer;
+};
+
 BitGoD.prototype.error = function(message, code) {
   if (!code) {
     throw new Error(message);
@@ -256,9 +276,9 @@ BitGoD.prototype.handleListAccounts = function(minConfirms) {
 BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresses) {
   this.ensureWallet();
   var self = this;
-  minConfirms = this.getMinConfirms();
+  minConfirms = this.getNumber(minConfirms, 1);
+  maxConfirms = this.getNumber(maxConfirms, 9999999);
 
-  // TODO: use paging to get more than 500
   return this.wallet.unspents()
   .then(function(unspents) {
     return unspents.map(function(u) {
@@ -272,43 +292,76 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
         amount: self.toBTC(u.value),
         confirmations: u.confirmations
       };
+    })
+    .filter(function(u) {
+      return (u.confirmations >= minConfirms && u.confirmations <= maxConfirms);
     });
   });
 };
 
-BitGoD.prototype.handleListTransactions = function(maxTransactions) {
+BitGoD.prototype.handleListTransactions = function(account, count, from) {
   this.ensureWallet();
   var self = this;
   maxTransactions = this.getMaxTransactions();
+  count = this.getInteger(count, 10);
+  from = this.getInteger(from, 0);
+  if (count < 0) {
+    throw this.error('Negative count', -8);
+  }
+  if (from < 0) {
+    throw this.error('Negative from', -8);
+  }
 
   var txList = [];
+  var outputList = [];
 
   return this.wallet.transactions()
   .then(function(result) {
-    txList = txList.concat(result.transactions.map(function(tx) {
-      // Find the entry for 'this' wallet.
+    result.transactions.every(function(tx) {
+
       for (var index = 0; index < tx.entries.length; ++index) {
         if (tx.entries[index].account == self.wallet.id()) {
-          tx.amount = self.toBTC(tx.entries[index].value);
+          tx.value = tx.entries[index].value;
           break;
         }
       }
 
-      return {
-        account: '',
-        address: tx.address,
-        category:  'tbd',
-        amount:  tx.amount,
-        confirmations: tx.confirmations,
-        blockhash: '',
-        blockindex: 0,
-        blocktime: '',
-        txid: tx.id,
-        time: new Date(tx.date).getTime() / 1000,
-        timereceived: new Date(tx.date).getTime() / 1000,
-      };
-    }));
-    return txList;
+      tx.outputs.forEach(function(output) {
+        // Skip the output if it's an overall spend, but we have a positive output to us,
+        // or if it's an overall receive, and there's a positive output elsewhere.
+        // This should be the change.
+        if (tx.value < 0 && output.isMine ||
+            tx.value > 0 && !output.isMine) {
+          return;
+        }
+        output.netValue = output.isMine ? output.value : -output.value;
+        var record = {
+          account: '',
+          address: output.account,
+          category:  output.isMine ? 'receive' : 'send',
+          amount: self.toBTC(output.netValue),
+          vout: output.vout,
+          confirmations: tx.confirmations,
+          blockhash: tx.blockhash,
+          // blockindex: 0,
+          // blocktime: '',
+          txid: tx.id,
+          time: new Date(tx.date).getTime() / 1000,
+          timereceived: new Date(tx.date).getTime() / 1000,
+        };
+        if (tx.value < 0) {
+          record.fee = self.toBTC(-tx.fee);
+        }
+        outputList.push(record);
+      });
+      return (outputList.length < count + from);
+    });
+
+    return outputList
+    .slice(from, count + from)
+    .sort(function(a, b) {
+      return b.confirmations - a.confirmations;
+    });
   });
 };
 
