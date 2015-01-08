@@ -177,6 +177,10 @@ BitGoD.prototype.getWallet = function(id) {
   return this.bitgo.wallets().get({id: id});
 };
 
+BitGoD.prototype.handleNOOP = function() {
+  return "";
+};
+
 BitGoD.prototype.handleSetToken = function(token) {
   var self = this;
   this.bitgo._token = token;
@@ -495,11 +499,16 @@ BitGoD.prototype.run = function() {
   self.expose('listtransactions', self.handleListTransactions);
   self.expose('sendmany', self.handleSendMany);
 
+  // NOOP methods
+  self.expose('walletpassphrase', self.handleNOOP);
+  self.expose('walletlock', self.handleNOOP);
+
   // BitGo-specific methods
   self.expose('settoken', self.handleSetToken);
   self.expose('setkeychain', self.handleSetKeychain);
   self.expose('setwallet', self.handleSetWallet);
   self.expose('unlock', self.handleUnlock);
+
 
   // Listen
   var port = self.args.rpcport || (self.bitgo.network === 'prod' ? 9332 : 19332);
