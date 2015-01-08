@@ -316,23 +316,13 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   this.ensureWallet();
   var self = this;
   var satoshis = Math.floor(Number(btcAmount) * 1e8);
-  try {
-    new bitgo.Address(address);
-  } catch(err) {
-    throw this.error('Invalid Bitcoin address', -5);
-  }
-  if (isNaN(satoshis) || satoshis <= 0) {
-    throw this.error('Invalid amount', -3);
-  }
+
   return this.getWallet()
   .then(function(wallet) {
-    if (satoshis > wallet.wallet.availableBalance) {
-      throw self.error('Insufficient funds', -6);
-    }
-
+    var recipients = {};
+    recipients[address] = satoshis;
     return self.wallet.createTransaction({
-      address: address,
-      amount: satoshis,
+      recipients: recipients,
       keychain: self.getKeychain()
     });
   })
@@ -344,6 +334,65 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   })
   .then(function(result) {
     return result.hash;
+  })
+  .catch(function(err) {
+    var message = err.message || err;
+
+    if (message === 'Insufficient funds') {
+      throw self.error('Insufficient funds', -6);
+    }
+    if (message.indexOf('invalid bitcoin address') !== '-1') {
+      throw self.error('Invalid Bitcoin address', -5);
+    }
+    if (message.indexOf('invalid amount') !== '-1') {
+      throw this.error('Invalid amount', -3);
+    }
+  });
+};
+
+BitGoD.prototype.handleSendMany = function(recipientsInput, comment) {
+  this.ensureWallet();
+  var self = this;
+  var recipients;
+
+  try {
+    recipients = JSON.parse(recipientsInput);
+  } catch (err) {
+    throw self.error('Error parsing JSON:'+recipientsInput, -1);
+  }
+
+  Object.keys(recipients).forEach(function(destinationAddress) {
+    recipients[destinationAddress] = Math.floor(Number(recipients[destinationAddress]) * 1e8);
+  });
+
+  return this.getWallet()
+  .then(function(wallet) {
+    return self.wallet.createTransaction({
+      recipients: recipients,
+      keychain: self.getKeychain()
+    });
+  })
+  .then(function(tx) {
+    return self.wallet.sendTransaction({
+      tx: tx.tx,
+      message: comment
+    });
+  })
+  .then(function(result) {
+    return result.hash;
+  })
+  .catch(function(err) {
+    var message = err.message || err;
+
+    if (message === 'Insufficient funds') {
+      throw self.error('Insufficient funds', -6);
+    }
+    if (message.indexOf('invalid bitcoin address') !== '-1') {
+      throw self.error(message, -5);
+    }
+    if (message.indexOf('invalid amount') !== '-1') {
+      throw self.error(message, -3);
+    }
   });
 };
 
@@ -391,6 +440,7 @@ BitGoD.prototype.run = function() {
   self.expose('listunspent', self.handleListUnspent);
   self.expose('sendtoaddress', self.handleSendToAddress);
   self.expose('listtransactions', self.handleListTransactions);
+  self.expose('sendmany', self.handleSendMany);
 
   // BitGo-specific methods
   self.expose('settoken', self.handleSetToken);
