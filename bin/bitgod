@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+var bitgod = require('../src');
+
+var bgd = new bitgod.BitGoD();
+bgd.run();
