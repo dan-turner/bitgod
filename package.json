@@ -1,0 +1,35 @@
+{
+  "name": "bitgod",
+  "version": "0.1.0",
+  "description": "BitGo API proxy conforming to bitcoind JSON-RPC API",
+  "main": "src/index.js",
+  "bin": {
+    "bitgo": "bin/bitgo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/BitGo/bitgod.git"
+  },
+  "keywords": [
+    "bitgo",
+    "bitcoin",
+    "bitcoind"
+  ],
+  "author": "BitGo Inc.",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/BitGo/bitgod/issues"
+  },
+  "homepage": "https://github.com/BitGo/bitgod",
+  "dependencies": {
+    "argparse": "^0.1.16",
+    "bitgo": "^0.9.0",
+    "json-rpc2": "^0.8.1",
+    "lodash": "^2.4.1",
+    "q": "^1.1.2",
+    "read": "^1.0.5",
+    "underscore.string": "^2.4.0",
+    "winston": "0.7.3"
+  },
+  "preferGlobal": true
+}
