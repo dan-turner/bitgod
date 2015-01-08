@@ -466,7 +466,7 @@ BitGoD.prototype.run = function() {
   // Configure bitcoin network (prod/testnet)
   var network = 'testnet';
   if (process.env.BITGO_NETWORK === 'prod' || self.args.prod) {
-    network = 'testnet';
+    network = 'prod';
   }
   bitgo.setNetwork(network);
   self.bitgo = new bitgo.BitGo({
