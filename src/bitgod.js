@@ -223,13 +223,12 @@ BitGoD.prototype.handleGetBalance = function(account, minConfirms) {
   }
   return this.getWallet()
   .then(function(wallet) {
-    var w = wallet.wallet;
     switch (minConfirms) {
       // TODO: determine the correct thing to do here
       case 0:
-        return self.toBTC(w.pendingBalance);
+        return self.toBTC(wallet.balance());
       case 1:
-        return self.toBTC(w.balance);
+        return self.toBTC(wallet.confirmedBalance());
     }
   });
 };
@@ -249,18 +248,18 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   minConfirms = this.getMinConfirms();
 
   // TODO: use paging to get more than 500
-  return this.wallet.unspents({limit: 500})
+  return this.wallet.unspents()
   .then(function(unspents) {
     return unspents.map(function(u) {
       return {
         txid: u.tx_hash,
         vout: u.tx_output_n,
-        address: 'TODO',
+        address: u.address,
         account: '',
         scriptPubKey: u.script,
         redeemScript: u.redeemScript,
         amount: self.toBTC(u.value),
-        confirmations: 'TODO'
+        confirmations: u.confirmations
       };
     });
   });
