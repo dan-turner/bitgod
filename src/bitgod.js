@@ -410,7 +410,6 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
 BitGoD.prototype.handleSendMany = function(account, recipients, minconf, comment) {
   this.ensureWallet();
   var self = this;
-  var recipients;
 
   Object.keys(recipients).forEach(function(destinationAddress) {
     recipients[destinationAddress] = Math.floor(Number(recipients[destinationAddress]) * 1e8);
