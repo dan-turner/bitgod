@@ -437,11 +437,14 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minconf, comment
     if (message === 'Insufficient funds') {
       throw self.error('Insufficient funds', -6);
     }
-    if (message.indexOf('invalid bitcoin address') !== '-1') {
+    if (message.indexOf('invalid bitcoin address') !== -1) {
       throw self.error(message, -5);
     }
-    if (message.indexOf('invalid amount') !== '-1') {
+    if (message.indexOf('invalid amount') !== -1) {
       throw self.error(message, -3);
+    }
+    if (message.indexOf('must have at least one recipient') !== -1) {
+      throw self.error('Transaction amounts must be positive', -6);
     }
   });
 };
