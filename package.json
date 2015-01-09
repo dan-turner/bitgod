@@ -23,7 +23,7 @@
   "homepage": "https://github.com/BitGo/bitgod",
   "dependencies": {
     "argparse": "^0.1.16",
-    "bitgo": "^0.9.3",
+    "bitgo": "^0.9.4",
     "json-rpc2": "^0.8.1",
     "lodash": "^2.4.1",
     "q": "^1.1.2",
