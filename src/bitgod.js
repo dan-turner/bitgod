@@ -129,17 +129,6 @@ BitGoD.prototype.getMinConfirms = function(minConfirms) {
   return minConfirms;
 };
 
-BitGoD.prototype.getMaxTransactions = function(maxTransactions) {
-  if (typeof(maxTranscations) == 'undefined') {
-    maxTransactions = 1;
-  }
-  maxTransactions = Number(maxTransactions);
-  if (maxTransactions !== 0 && maxTransactions !== 1) {
-    throw new Error('unsupported maxtransactions value');
-  }
-  return maxTransactions;
-};
-
 BitGoD.prototype.toBTC = function(satoshis) {
   return (satoshis / 1e8);
 };
@@ -306,7 +295,7 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
 BitGoD.prototype.handleListTransactions = function(account, count, from) {
   this.ensureWallet();
   var self = this;
-  maxTransactions = this.getMaxTransactions();
+
   count = this.getInteger(count, 10);
   from = this.getInteger(from, 0);
   if (count < 0) {
@@ -316,51 +305,62 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
     throw this.error('Negative from', -8);
   }
 
-  var txList = [];
   var outputList = [];
+  var getTransactionsInternal = function(skip) {
 
-  return this.wallet.transactions()
-  .then(function(result) {
-    result.transactions.every(function(tx) {
+    return self.wallet.transactions({ limit: 500, skip: skip })
+    .then(function(res) {
 
-      for (var index = 0; index < tx.entries.length; ++index) {
-        if (tx.entries[index].account == self.wallet.id()) {
-          tx.value = tx.entries[index].value;
-          break;
-        }
-      }
+      res.transactions.every(function(tx) {
 
-      tx.outputs.forEach(function(output) {
-        // Skip the output if it's an overall spend, but we have a positive output to us,
-        // or if it's an overall receive, and there's a positive output elsewhere.
-        // This should be the change.
-        if (tx.value < 0 && output.isMine ||
-            tx.value > 0 && !output.isMine) {
-          return;
+        for (var index = 0; index < tx.entries.length; ++index) {
+          if (tx.entries[index].account == self.wallet.id()) {
+            tx.value = tx.entries[index].value;
+            break;
+          }
         }
-        output.netValue = output.isMine ? output.value : -output.value;
-        var record = {
-          account: '',
-          address: output.account,
-          category:  output.isMine ? 'receive' : 'send',
-          amount: self.toBTC(output.netValue),
-          vout: output.vout,
-          confirmations: tx.confirmations,
-          blockhash: tx.blockhash,
-          // blockindex: 0,
-          // blocktime: '',
-          txid: tx.id,
-          time: new Date(tx.date).getTime() / 1000,
-          timereceived: new Date(tx.date).getTime() / 1000,
-        };
-        if (tx.value < 0) {
-          record.fee = self.toBTC(-tx.fee);
-        }
-        outputList.push(record);
+
+        tx.outputs.forEach(function(output) {
+          // Skip the output if it's an overall spend, but we have a positive output to us,
+          // or if it's an overall receive, and there's a positive output elsewhere.
+          // This should be the change.
+          if (tx.value < 0 && output.isMine ||
+          tx.value > 0 && !output.isMine) {
+            return;
+          }
+          output.netValue = output.isMine ? output.value : -output.value;
+          var record = {
+            account: '',
+            address: output.account,
+            category:  output.isMine ? 'receive' : 'send',
+            amount: self.toBTC(output.netValue),
+            vout: output.vout,
+            confirmations: tx.confirmations,
+            blockhash: tx.blockhash,
+            // blockindex: 0,
+            // blocktime: '',
+            txid: tx.id,
+            time: new Date(tx.date).getTime() / 1000,
+            timereceived: new Date(tx.date).getTime() / 1000
+          };
+          if (tx.value < 0) {
+            record.fee = self.toBTC(-tx.fee);
+          }
+          outputList.push(record);
+        });
+        return (outputList.length < count + from);
       });
-      return (outputList.length < count + from);
-    });
 
+      if (outputList.length >= count + from || res.count <= 0) {
+        return;
+      } else {
+        return getTransactionsInternal(skip + res.count);
+      }
+    });
+  };
+
+  return getTransactionsInternal(0)
+  .then(function() {
     return outputList
     .slice(from, count + from)
     .sort(function(a, b) {
@@ -407,16 +407,10 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   });
 };
 
-BitGoD.prototype.handleSendMany = function(recipientsInput, comment) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minconf, comment) {
   this.ensureWallet();
   var self = this;
   var recipients;
-
-  try {
-    recipients = JSON.parse(recipientsInput);
-  } catch (err) {
-    throw self.error('Error parsing JSON:'+recipientsInput, -1);
-  }
 
   Object.keys(recipients).forEach(function(destinationAddress) {
     recipients[destinationAddress] = Math.floor(Number(recipients[destinationAddress]) * 1e8);
