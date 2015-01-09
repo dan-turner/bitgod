@@ -504,7 +504,7 @@ BitGoD.prototype.run = function() {
 
 
   // Listen
-  var port = self.args.rpcport || (self.bitgo.network === 'prod' ? 9332 : 19332);
+  var port = self.args.rpcport || (bitgo.network === 'prod' ? 9332 : 19332);
   self.server.listen(port, self.args.rpcbind);
   console.log('JSON-RPC server active on ' + self.args.rpcbind + ':' + port);
 };
