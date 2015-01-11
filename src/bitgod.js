@@ -320,12 +320,15 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
           }
         }
 
-        tx.outputs.forEach(function(output) {
-          // Skip the output if it's an overall spend, but we have a positive output to us,
+        var outputCount = tx.outputs.length;
+        tx.outputs.forEach(function(output, outputIndex) {
+          // Skip the output if it's an overall spend, but we have a positive output to us that
+          // is last (the change address)
           // or if it's an overall receive, and there's a positive output elsewhere.
-          // This should be the change.
-          if (tx.value < 0 && output.isMine ||
-          tx.value > 0 && !output.isMine) {
+          // TODO: fix this the right way to know whether it's change address if change
+          // addresses are no longer always put last.
+          if ((tx.value < 0 && output.isMine && output.vout === outputCount - 1) ||
+              (tx.value > 0 && !output.isMine) ) {
             return;
           }
           output.netValue = output.isMine ? output.value : -output.value;
@@ -364,7 +367,16 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
     return outputList
     .slice(from, count + from)
     .sort(function(a, b) {
-      return b.confirmations - a.confirmations;
+      if (b.confirmations != a.confirmations) {
+        return b.confirmations - a.confirmations;
+      }
+      if (b.amount != a.amount) {
+        return b.amount - a.amount;
+      }
+      if (b.address !== a.address) {
+        return (b.address > a.address) ? 1 : -1;
+      }
+      return (b.txid > a.txid ? 1 : -1);
     });
   });
 };
