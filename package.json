@@ -22,13 +22,13 @@
   },
   "homepage": "https://github.com/BitGo/bitgod",
   "dependencies": {
-    "argparse": "^0.1.16",
-    "bitgo": "0.9.8",
-    "json-rpc2": "^0.8.1",
-    "lodash": "^2.4.1",
+    "argparse": "0.1.16",
+    "bitgo": "0.9.9",
+    "json-rpc2": "0.8.1",
+    "lodash": "2.4.1",
     "q": "^1.1.2",
-    "read": "^1.0.5",
-    "underscore.string": "^2.4.0",
+    "read": "1.0.5",
+    "underscore.string": "2.4.0",
     "winston": "0.7.3"
   },
   "preferGlobal": true

@@ -161,6 +161,31 @@ BitGoD.prototype.error = function(message, code) {
   return new MyError(message);
 };
 
+BitGoD.prototype.modifyError = function(err) {
+  var message;
+  if (typeof(err) === 'string') {
+    message = err;
+  } else {
+    message = err.message;
+  }
+  if (!message) {
+    return err;
+  }
+  if (message === 'Insufficient funds') {
+    return this.error('Insufficient funds', -6);
+  }
+  if (message.indexOf('invalid bitcoin address') !== -1) {
+    return this.error('Invalid Bitcoin address', -5);
+  }
+  if (message.indexOf('invalid amount') !== -1) {
+    return this.error('Invalid amount', -3);
+  }
+  if (message.indexOf('must have at least one recipient') !== -1) {
+    return this.error('Transaction amounts must be positive', -6);
+  }
+  return err;
+};
+
 BitGoD.prototype.getWallet = function(id) {
   id = id || this.wallet.id();
   return this.bitgo.wallets().get({id: id});
@@ -384,13 +409,14 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   this.ensureWallet();
   var self = this;
-  var satoshis = Math.floor(Number(btcAmount) * 1e8);
+  var satoshis = Math.round(Number(btcAmount) * 1e8);
 
   return this.getWallet()
   .then(function(wallet) {
     var recipients = {};
     recipients[address] = satoshis;
     return self.wallet.createTransaction({
+      minConfirms: 1,
       recipients: recipients,
       keychain: self.getKeychain()
     });
@@ -405,31 +431,23 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     return result.hash;
   })
   .catch(function(err) {
-    var message = err.message || err;
-
-    if (message === 'Insufficient funds') {
-      throw self.error('Insufficient funds', -6);
-    }
-    if (message.indexOf('invalid bitcoin address') !== '-1') {
-      throw self.error('Invalid Bitcoin address', -5);
-    }
-    if (message.indexOf('invalid amount') !== '-1') {
-      throw this.error('Invalid amount', -3);
-    }
+    throw self.modifyError(err);
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minconf, comment) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment) {
   this.ensureWallet();
   var self = this;
+  minConfirms = this.getNumber(minConfirms, 1);
 
   Object.keys(recipients).forEach(function(destinationAddress) {
-    recipients[destinationAddress] = Math.floor(Number(recipients[destinationAddress]) * 1e8);
+    recipients[destinationAddress] = Math.round(Number(recipients[destinationAddress]) * 1e8);
   });
 
   return this.getWallet()
   .then(function(wallet) {
     return self.wallet.createTransaction({
+      minConfirms: minConfirms,
       recipients: recipients,
       keychain: self.getKeychain()
     });
@@ -444,23 +462,15 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minconf, comment
     return result.hash;
   })
   .catch(function(err) {
-    var message = err.message || err;
-
-    if (message === 'Insufficient funds') {
-      throw self.error('Insufficient funds', -6);
-    }
-    if (message.indexOf('invalid bitcoin address') !== -1) {
-      throw self.error(message, -5);
-    }
-    if (message.indexOf('invalid amount') !== -1) {
-      throw self.error(message, -3);
-    }
-    if (message.indexOf('must have at least one recipient') !== -1) {
-      throw self.error('Transaction amounts must be positive', -6);
-    }
+    throw self.modifyError(err);
   });
 };
 
+/**
+ * Expose an RPC method
+ * @param   {String} name   the method name
+ * @param   {Function} method   the @method
+ */
 BitGoD.prototype.expose = function(name, method) {
   var self = this;
   this.server.expose(name, function(args, opt, callback) {
