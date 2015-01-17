@@ -23,7 +23,9 @@
   "homepage": "https://github.com/BitGo/bitgod",
   "dependencies": {
     "argparse": "0.1.16",
-    "bitgo": "0.9.9",
+    "assert": "0.4.9",
+    "bitcoinjs-lib": "1.4.3",
+    "bitgo": "0.9.11",
     "json-rpc2": "0.8.1",
     "lodash": "2.4.1",
     "q": "^1.1.2",

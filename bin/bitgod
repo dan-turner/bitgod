@@ -2,4 +2,9 @@
 var bitgod = require('../src');
 
 var bgd = new bitgod.BitGoD();
-bgd.run();
+
+try {
+  bgd.run();
+} catch (err) {
+  console.log(err.message);
+}

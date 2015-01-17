@@ -2,12 +2,18 @@
 //
 
 var ArgumentParser = require('argparse').ArgumentParser;
+var assert = require('assert');
 var bitgo = require('bitgo');
+var bitcoin = require('bitcoinjs-lib');
 var rpc = require('json-rpc2');
 var Q = require('q');
 var fs = require('fs');
 var _ = require('lodash');
 _.string = require('underscore.string');
+var pjson = require('../package.json');
+var BITGOD_VERSION = pjson.version;
+
+// Q.longStackSupport = true;
 
 var BitGoD = function () {
 };
@@ -65,6 +71,14 @@ BitGoD.prototype.getArgs = function() {
       help: 'Proxy to bitcoind JSON-RPC backend for non-wallet commands'
   });
 
+  parser.addArgument(
+    ['-validate'], {
+      nargs: '?',
+      choices: ['loose', 'strict'],
+      constant: 'loose',
+      help: 'Validate transaction data against local bitcoind (requires -proxy)'
+  });
+
   return parser.parseArgs();
 };
 
@@ -77,11 +91,11 @@ BitGoD.prototype.setupProxy = function() {
 
   var commandGroups = {
     blockchain: 'getbestblockhash getblock getblockchaininfo getblockcount getblockhash getchaintips getdifficulty getmempoolinfo getrawmempool gettxout gettxoutsetinfo verifychain',
-    control: 'getinfo help',
+    control: 'help',
     mining: 'getmininginfo getnetworkhashps prioritisetransaction submitblock',
     network: 'addnode getaddednodeinfo getconnectioncount getnettotals getnetworkinfo getpeerinfo ping',
     tx: 'createrawtransaction decoderawtransaction decodescript getrawtransaction sendrawtransaction signrawtransaction',
-    util: 'createmultisig estimatefee estimatepriority validateaddress verifymessage'
+    util: 'createmultisig estimatefee estimatepriority verifymessage'
   };
 
   var proxyPort = this.args.proxyport || (this.bitgo.network === 'prod' ? 8332 : 18332);
@@ -103,6 +117,50 @@ BitGoD.prototype.setupProxy = function() {
   for (var group in commandGroups) {
     commandGroups[group].split(' ').forEach(proxyCommand);
   }
+
+  // Setup promis-ified method to call a method in bitcoind
+  this.callLocalMethod = Q.nbind(this.client.call, this.client);
+
+  // Verify we can actually connect
+  return this.callLocalMethod('getinfo', [])
+  .catch(function(err) {
+    throw new Error('Could not connect to proxy');
+  });
+};
+
+BitGoD.prototype.getTransactionLocal = function(txhash) {
+  return this.callLocalMethod('getrawtransaction', [txhash])
+  .then(function(hex) {
+    return bitcoin.Transaction.fromHex(hex);
+  });
+};
+
+BitGoD.prototype.getTransactionsLocal = function(txhashes) {
+  var self = this;
+  return Q.allSettled(
+    txhashes.map(function(txhash) {
+      return self.getTransactionLocal(txhash);
+    })
+  )
+  .then(function(result) {
+    return _.pluck(result, 'value');
+  });
+};
+
+BitGoD.prototype.getBlockLocal = function(blockhash) {
+  return this.callLocalMethod('getblock', [blockhash]);
+};
+
+BitGoD.prototype.getBlocksLocal = function(blockhashes) {
+  var self = this;
+  return Q.allSettled(
+    blockhashes.map(function(blockhash) {
+      return self.getBlockLocal(blockhash);
+    })
+  )
+  .then(function(result) {
+    return _.pluck(result, 'value');
+  });
 };
 
 BitGoD.prototype.ensureWallet = function() {
@@ -111,22 +169,28 @@ BitGoD.prototype.ensureWallet = function() {
   }
 };
 
-BitGoD.prototype.getKeychain = function() {
+BitGoD.prototype.getSigningKeychain = function() {
   if (!this.keychain) {
     throw new Error('No keychain');
   }
-  return this.keychain;
-};
-
-BitGoD.prototype.getMinConfirms = function(minConfirms) {
-  if (typeof(minConfirms) == 'undefined') {
-    minConfirms = 1;
+  if (!this.keychain.xprv && !this.keychain.encryptedXprv) {
+    throw new Error('No keychain xprv');
   }
-  minConfirms = Number(minConfirms);
-  if (minConfirms !== 0 && minConfirms !== 1) {
-    throw new Error('unsupported minconf value');
+  var xprv = this.keychain.xprv;
+  if (!xprv) {
+    if (!this.passphrase) {
+      throw this.error('Error: Please use walletpassphrase or setkeychain first.', -13);
+    }
+    xprv = this.bitgo.decrypt({
+      password: this.passphrase,
+      input: this.keychain.encryptedXprv
+    });
   }
-  return minConfirms;
+  return {
+    xpub: this.keychain.xpub,
+    path: this.keychain.path,
+    xprv: xprv
+  };
 };
 
 BitGoD.prototype.toBTC = function(satoshis) {
@@ -153,12 +217,22 @@ BitGoD.prototype.getInteger = function(val, defaultValue) {
   return integer;
 };
 
+BitGoD.prototype.ensureBlankAccount = function(account) {
+  if (typeof(account) !== 'undefined' && account !== '') {
+    throw new Error('accounts not supported - use blank account only');
+  }
+};
+
 BitGoD.prototype.error = function(message, code) {
   if (!code) {
     throw new Error(message);
   }
   var MyError = rpc.Error.AbstractError.$define('MyError', {code: code});
   return new MyError(message);
+};
+
+BitGoD.prototype.log = function() {
+  return console.log.apply(console, arguments);
 };
 
 BitGoD.prototype.modifyError = function(err) {
@@ -217,13 +291,65 @@ BitGoD.prototype.handleSetWallet = function(walletId) {
   });
 };
 
-BitGoD.prototype.handleUnlock = function(otp) {
-  return this.bitgo.unlock({otp: otp})
+BitGoD.prototype.handleValidateAddress = function(address) {
+  var result = {
+    valid: this.bitgo.verifyAddress({ address: address })
+  };
+  if (!result.valid) {
+    return result;
+  }
+  result.address = address;
+  result.scriptPubKey = bitcoin.Address.fromBase58Check(address).toOutputScript().toHex();
+  // Missing fields for our own addresses (need API support):
+  // ismine
+  // iswatchonly
+  // isscript
+  // pubkey
+  // iscompressed
+  // account
+  return result;
+};
+
+BitGoD.prototype.handleSession = function() {
+  return this.bitgo.session()
+  .then(function(session) {
+    if (session.unlock) {
+      session.unlock.secondsRemaining = Math.floor((new Date(session.unlock.expires) - new Date()) / 1000);
+    }
+    return session;
+  });
+};
+
+BitGoD.prototype.handleUnlock = function(otp, seconds) {
+  seconds = this.getNumber(seconds, 600);
+  return this.bitgo.unlock({otp: otp, duration: seconds})
   .then(function() {
     return 'Unlocked';
   });
 };
 
+BitGoD.prototype.handleLock = function() {
+  return this.bitgo.lock()
+  .then(function() {
+    return "Locked";
+  });
+};
+
+BitGoD.prototype.handleFreezeWallet = function(seconds) {
+  var self = this;
+  seconds = this.getNumber(seconds);
+  this.ensureWallet();
+  return this.wallet.freeze({ duration: seconds });
+};
+
+/**
+ * Set the wallet keychain xprv, after fetching the keychain from the server, and validating
+ * the xprv against the xpub.  This call can be used by customers who don't have an encryptedXprv
+ * set on their server-side keychain.
+ *
+ * @param   {String} xprv   the BIP32 xprv for the user's keychain
+ * @returns {String}        message on success, or throws
+ */
 BitGoD.prototype.handleSetKeychain = function(xprv) {
   var self = this;
 
@@ -252,33 +378,132 @@ BitGoD.prototype.handleSetKeychain = function(xprv) {
   });
 };
 
-BitGoD.prototype.handleGetNewAddress = function(returnJSON) {
+/**
+ * Set the wallet passphrase for a specified number of seconds.
+ * Has slightly different behavior if a keychain is already set (using setkeychain)
+ *
+ * If keychain is set:
+ *   - we encrypt the xprv with the passphrase, and then dump the unencrypted version
+ *
+ * If keychain is not set, grab from the server, and attempt to decrypt encryptedXprv.
+ * If it succeeds, then keep the passphrase in memory for the specified time period.
+ *
+ * @param   {String} passphrase    the passphrase
+ * @param   {Number} timeout       the timeout in seconds
+ * @returns {Promise}              undefined on success, or throws
+ */
+BitGoD.prototype.handleWalletPassphrase = function(passphrase, timeout) {
+  var self = this;
+  timeout = this.getNumber(timeout, 0);
+  if (!timeout) {
+    throw new Error('timeout must be specified');
+  }
+  var error = this.error('Error: The wallet passphrase entered was incorrect.', -14);
   this.ensureWallet();
-  return this.wallet.createAddress()
-  .then(function(address) {
-    if (returnJSON == 'json') {
-      return address;
+
+  return Q().then(function() {
+    // If we don't have a keychain set yet, fetch it from the wallet
+    if (!self.keychain) {
+      return self.bitgo.keychains().get({xpub: self.wallet.keychains[0].xpub })
+      .then(function(keychain) {
+        self.keychain = keychain;
+      });
     }
+  })
+  .then(function() {
+    if (self.keychain.encryptedXprv) {
+      try {
+        self.bitgo.decrypt({
+          password: passphrase,
+          input: self.keychain.encryptedXprv
+        });
+      } catch (e) {
+        throw error;
+      }
+    }
+    // Handle case where we already have a keychain set, just not encrypted
+    if (self.keychain.xprv) {
+      self.keychain.encryptedXprv = self.bitgo.encrypt({
+        password: passphrase,
+        input: self.keychain.xprv
+      });
+    }
+
+    // Make sure we don't keep unencrypted version
+    delete self.keychain.xprv;
+
+    self.passphrase = passphrase;
+
+    // Delete the passphrase in timeout seconds (or immediately if <= 0)
+    setTimeout(function() {
+      delete self.passphrase;
+    }, timeout * 1000);
+  });
+};
+
+BitGoD.prototype.handleWalletLock = function() {
+  delete this.passphrase;
+};
+
+BitGoD.prototype.newAddress = function(chain) {
+  this.ensureWallet();
+  return this.wallet.createAddress({chain: chain})
+  .then(function(address) {
     return address.address;
+  });
+};
+
+BitGoD.prototype.handleGetNewAddress = function() {
+  return this.newAddress(0);
+};
+
+BitGoD.prototype.handleGetRawChangeAddress = function() {
+  return this.newAddress(1);
+};
+
+BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms) {
+  return this.handleListUnspent(minConfirms, maxConfirms)
+  .then(function(unspents) {
+    return self.toBTC(
+      Math.round(unspents.reduce(function(prev, unspent) { return prev + unspent.satoshis; }, 0))
+    );
+  });
+};
+
+BitGoD.prototype.getBalance = function(minConfirms) {
+  assert(typeof(minConfirms) !== 'undefined');
+  var self = this;
+  return Q().then(function() {
+    if (minConfirms > 1) {
+      return self.getBalanceFromUnspents(minConfirms);
+    }
+    return self.getWallet()
+    .then(function(wallet) {
+      switch (minConfirms) {
+        case 0:
+          return self.toBTC(wallet.balance());
+        case 1:
+          return self.toBTC(wallet.confirmedBalance());
+      }
+    });
+  }).then(function(balance) {
+    return balance;
   });
 };
 
 BitGoD.prototype.handleGetBalance = function(account, minConfirms) {
   this.ensureWallet();
+  this.ensureBlankAccount(account);
+  minConfirms = this.getNumber(minConfirms, 1);
+  return this.getBalance(minConfirms);
+};
+
+BitGoD.prototype.handleGetUnconfirmedBalance = function() {
   var self = this;
-  minConfirms = this.getMinConfirms(minConfirms);
-  if (account && account != '*') {
-    return this.toBTC(0);
-  }
+  this.ensureWallet();
   return this.getWallet()
   .then(function(wallet) {
-    switch (minConfirms) {
-      // TODO: determine the correct thing to do here
-      case 0:
-        return self.toBTC(wallet.balance());
-      case 1:
-        return self.toBTC(wallet.confirmedBalance());
-    }
+    return self.toBTC(wallet.balance() - wallet.confirmedBalance());
   });
 };
 
@@ -308,6 +533,7 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
         scriptPubKey: u.script,
         redeemScript: u.redeemScript,
         amount: self.toBTC(u.value),
+        satoshis: u.value,  // non-standard field
         confirmations: u.confirmations
       };
     })
@@ -317,12 +543,175 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   });
 };
 
+/**
+ * Validate a list of tx outputs against the local bitcoind
+ * The following are checked for each output:
+ *  1. The txid exists
+ *  2. The blockhash exists
+ *  3. The value matches
+ *  4. The address matches
+ *  5. The output's transaction is included in the specified block
+ *  6. The output's block has the specified height / confirms
+ *
+ * @param   {Array} outputs   list of outputs (in form returned by listtransactions)
+ * @returns {Array}           the outputs, or throws error
+ */
+BitGoD.prototype.validateTxOutputs = function(outputs) {
+  var self = this;
+
+  var throwValidationError = function(output, msg, serverVal, localVal) {
+    if (output) {
+      console.log('Validation failure for output:');
+      console.dir(output);
+    }
+    var prefix = 'Validation failed';
+    if (output) {
+      prefix = prefix + ' for output ' + output.txid + ':' + output.vout;
+    }
+    var postfix = "";
+    if (serverVal && localVal) {
+      postfix = " " + JSON.stringify({server: serverVal, local: localVal});
+    }
+    throw new Error(prefix + ': ' + msg + postfix);
+  };
+
+  // Divide outputs into 3 sets (0-confirm, 1-confirm, more-than-1-confirm)
+  var outputGroup = function(output) {
+    return output.confirmations > 1 ? 2 : output.confirmations;
+  };
+  var groups = [0, 1, 2];
+
+  var outputGroups = groups.map(function(group) {
+    return outputs.filter(function(o) { return outputGroup(o) === group; });
+  });
+
+  // Create corresponding sets of txids
+  var txidGroups = outputGroups.map(function(outputSet) {
+    return _.chain(outputSet).pluck('txid').uniq().value();
+  });
+
+  // Create corresponding sets of blockids
+  var blockidGroups = [
+    [],
+    _.chain(outputGroups[1]).pluck('blockhash').uniq().value(),
+    _.chain(outputGroups[2]).pluck('blockhash').uniq().value()
+  ];
+  // there should only be 1 top block
+  assert(blockidGroups[1].length <= 1);
+
+  return Q.all([
+    self.getTransactionsLocal(txidGroups[0]),
+    self.getTransactionsLocal(txidGroups[1]),
+    self.getTransactionsLocal(txidGroups[2]),
+    [],
+    self.getBlocksLocal(blockidGroups[1]),
+    self.getBlocksLocal(blockidGroups[2])
+  ])
+  .then(function(result) {
+    var txGroups = result.slice(0, 3);
+    var blockGroups = result.slice(3, 6);
+
+    // Build sets of maps from txid to tx
+    var txByIdGroups = groups.map(function(group) {
+      return _.zipObject(txidGroups[group], txGroups[group]);
+    });
+
+    // Build sets of maps from blockid to block
+    var blockByIdGroups = groups.map(function(group) {
+      return _.zipObject(blockidGroups[group], blockGroups[group]);
+    });
+
+    // In strict mode, we validate anything with 1 confirm or more. This means
+    // validation can fail if the local bitcoind does not have the current top block.
+    // In normal (loose) validation mode, we only require existence of blocks/transactions
+    // which have 2+ confirms.
+    var minGroupToValidate = self.validate === 'strict' ? 1 : 2;
+
+    groups.slice(minGroupToValidate, 2).forEach(function(group) {
+      var failedTransactions = txidGroups[group].filter(function(txid) { return !txByIdGroups[group][txid]; });
+      if (failedTransactions.length > 0) {
+        throwValidationError(null, 'Missing txids ' + failedTransactions.join(', '));
+      }
+
+      var failedBlocks = blockidGroups[group].filter(function(blockid) { return !blockByIdGroups[group][blockid]; });
+      if (failedBlocks.length > 0) {
+        throwValidationError(null, 'Missing blocks ' + failedBlocks.join(', '));
+      }
+    });
+
+    outputs.forEach(function(o) {
+      var group = outputGroup(o);
+      var txoutStr = [o.txid, o.vout].join(':');
+      var tx = txByIdGroups[group][o.txid];
+
+      // If we don't have the tx, just return. We checked existence above.
+      if (!tx) {
+        assert(group < minGroupToValidate);
+        return;
+      }
+      var txout = tx.outs[o.vout];
+
+      // validate amount
+      if (o.satoshis !== txout.value) {
+        throwValidationError(o, 'Amount mismatch', o.satoshis, txout.value);
+      }
+
+      // validate address
+      var address = bitcoin.Address.fromOutputScript(txout.script, this.network).toBase58Check();
+      if (o.address !== address) {
+        throwValidationError(o, 'Address mismatch', o.address, address);
+      }
+
+      // validate it's in the right block, and confirms matches
+      if (o.blockhash || o.confirmations) {
+        if (!o.blockhash) {
+          throwValidationError(o, 'Has non-zero confirms but missing blockhash');
+        }
+        if (!o.confirmations) {
+          throwValidationError(o, 'Has blockhash but missing confirms');
+        }
+        block = blockByIdGroups[group][o.blockhash];
+
+        // If we're missing block, just return.
+        if (!block) {
+          assert(group < minGroupToValidate);
+          return;
+        }
+
+        // validate tx included in block
+        if (block.tx.indexOf(o.txid) === -1) {
+          throwValidationError(o, 'Not included in block ' + block.hash);
+        }
+
+        // validate height matches
+        if (block.height !== o.height) {
+          throwValidationError(o, 'Height mismatch', o.height, block.height);
+        }
+
+        // validate confirms match. We allow us to under-report confirms by up to 2, but only
+        // be ahead by up to 1.
+        var confirmDifference = o.confirmations - block.confirmations;
+        if (confirmDifference < -2) {
+          throwValidationError(o, 'Confirms too low', o.confirmations, block.confirmations);
+        }
+        if (confirmDifference > 1) {
+          throwValidationError(o, 'Confirms too high', o.confirmations, block.confirmations);
+        }
+      }
+    });
+
+    return outputs;
+  });
+};
+
 BitGoD.prototype.handleListTransactions = function(account, count, from) {
   this.ensureWallet();
   var self = this;
 
+  this.ensureBlankAccount(account);
   count = this.getInteger(count, 10);
   from = this.getInteger(from, 0);
+
   if (count < 0) {
     throw this.error('Negative count', -8);
   }
@@ -365,11 +754,15 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
             vout: output.vout,
             confirmations: tx.confirmations,
             blockhash: tx.blockhash,
-            // blockindex: 0,
-            // blocktime: '',
+            // blockindex: 0,  // don't have it
+            // blocktime: '',  // don't have it
             txid: tx.id,
             time: new Date(tx.date).getTime() / 1000,
-            timereceived: new Date(tx.date).getTime() / 1000
+            timereceived: new Date(tx.date).getTime() / 1000,
+
+            // Non-standard fields (could strip after validation)
+            height: tx.height,
+            satoshis: output.value
           };
           if (tx.value < 0) {
             record.fee = self.toBTC(-tx.fee);
@@ -403,6 +796,12 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
       }
       return (b.txid > a.txid ? 1 : -1);
     });
+  })
+  .then(function(outputs) {
+    if (!self.validate) {
+      return outputs;
+    }
+    return self.validateTxOutputs(outputs);
   });
 };
 
@@ -418,7 +817,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     return self.wallet.createTransaction({
       minConfirms: 1,
       recipients: recipients,
-      keychain: self.getKeychain()
+      keychain: self.getSigningKeychain()
     });
   })
   .then(function(tx) {
@@ -438,6 +837,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
 BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment) {
   this.ensureWallet();
   var self = this;
+  this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
 
   Object.keys(recipients).forEach(function(destinationAddress) {
@@ -449,7 +849,7 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     return self.wallet.createTransaction({
       minConfirms: minConfirms,
       recipients: recipients,
-      keychain: self.getKeychain()
+      keychain: self.getSigningKeychain()
     });
   })
   .then(function(tx) {
@@ -466,16 +866,74 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
   });
 };
 
+BitGoD.prototype.handleSendFrom = function(account, address, amount, minConfirms, comment) {
+  var recipients = {};
+  recipients[address] = amount;
+  return this.handleSendMany(account, recipients, minConfirms, comment);
+};
+
+BitGoD.prototype.handleGetWalletInfo = function() {
+  var self = this;
+  this.ensureWallet();
+
+  return this.getWallet()
+  .then(function(wallet) {
+    return {
+      walletversion: 'bitgo',
+      balance: self.toBTC(wallet.confirmedBalance()),
+      unconfirmedbalance: self.toBTC(wallet.balance() - wallet.confirmedBalance()),
+      //unlocked_until: wallet.wallet.unlock
+    };
+  });
+};
+
+BitGoD.prototype.handleGetInfo = function() {
+  var self = this;
+  var promises = [];
+  var hasToken = !!this.bitgo._token;
+  promises.push(self.client ? self.callLocalMethod('getinfo', []) : undefined);
+  promises.push(hasToken ? self.getBalance(1) : undefined);
+
+  return Q.all(promises)
+  .spread(function(proxyInfo, balance) {
+    var info = {
+      bitgod: true,
+      version: BITGOD_VERSION,
+      testnet: bitgo.network === 'testnet',
+      token: hasToken,
+      wallet: self.wallet ? self.wallet.id() : false,
+      keychain: !!self.keychain,
+      balance: balance,
+      paytxfee: 0.0001,
+    };
+    if (proxyInfo) {
+      // Strip irrelevant fields, since wallet functionality is not used
+      info.proxy = _.omit(proxyInfo, ['balance', 'walletversion', 'keypoololdest', 'keypoolsize', 'paytxfee']);
+    }
+    return info;
+  });
+};
+
+BitGoD.prototype.handleNotImplemented = function() {
+  throw this.error('Not implemented', -32601);
+};
+
 /**
  * Expose an RPC method
  * @param   {String} name   the method name
  * @param   {Function} method   the @method
  */
-BitGoD.prototype.expose = function(name, method) {
+BitGoD.prototype.expose = function(name, method, noLogArgs) {
   var self = this;
   this.server.expose(name, function(args, opt, callback) {
+    var argString = noLogArgs ? '' : (' ' + JSON.stringify(args));
+    self.log('RPC call: ' + name + argString);
     return Q().then(function() {
       return method.apply(self, args);
+    })
+    .catch(function(err) {
+      console.log(err.stack);
+      throw err;
     })
     .nodeify(callback);
   });
@@ -491,6 +949,9 @@ BitGoD.prototype.run = function() {
     network = 'prod';
   }
   bitgo.setNetwork(network);
+  this.network = bitcoin.networks[network];
+
+  // Instantiate BitGo
   self.bitgo = new bitgo.BitGo({
     useProduction: network === 'prod'
   });
@@ -503,35 +964,70 @@ BitGoD.prototype.run = function() {
     }
   });
 
-  // Proxy bitcoind
-  if (self.args.proxy) {
-    self.setupProxy();
+  // Validation vs bitcoind
+  if (self.args.validate) {
+    if (!self.args.proxy) {
+      throw new Error('validate option requires a proxy bitcoind');
+    }
+    self.validate = self.args.validate;
+    console.log('Validating in ' + self.validate + ' mode');
   }
+
+  // Will not implement
+  var willNotImplement = 'addmultisigaddress backupwallet dumpprivkey dumpwallet getaccount getaccountaddress  importaddress importprivkey importwallet keypoolrefill listaddressgroupings listlockunspent listreceivedbyaccount lockunspent move setaccount signmessage';
+  willNotImplement.split(' ').forEach(function(api) {
+    self.expose(api, self.handleNotImplemented);
+  });
+
+  // Just not implemented yet
+  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount getreceivedbyaddress gettransaction listsinceblock settxfee';
+  notImplemented.split(' ').forEach(function(api) {
+    self.expose(api, self.handleNotImplemented);
+  });
 
   // BitGo-handled bitcoind methods
   self.expose('getnewaddress', self.handleGetNewAddress);
+  self.expose('getrawchangeaddress', self.handleGetRawChangeAddress);
   self.expose('getbalance', self.handleGetBalance);
+  self.expose('getinfo', self.handleGetInfo);
+  self.expose('getwalletinfo', self.handleGetWalletInfo);
+  self.expose('getunconfirmedbalance', self.handleGetUnconfirmedBalance);
   self.expose('listaccounts', self.handleListAccounts);
   self.expose('listunspent', self.handleListUnspent);
   self.expose('sendtoaddress', self.handleSendToAddress);
+  self.expose('sendfrom', self.handleSendFrom);
   self.expose('listtransactions', self.handleListTransactions);
   self.expose('sendmany', self.handleSendMany);
-
-  // NOOP methods
-  self.expose('walletpassphrase', self.handleNOOP);
-  self.expose('walletlock', self.handleNOOP);
+  self.expose('validateaddress', self.handleValidateAddress);
+  self.expose('walletpassphrase', self.handleWalletPassphrase, true);
+  self.expose('walletlock', self.handleWalletLock);
 
   // BitGo-specific methods
-  self.expose('settoken', self.handleSetToken);
-  self.expose('setkeychain', self.handleSetKeychain);
+  self.expose('settoken', self.handleSetToken, true);
+  self.expose('setkeychain', self.handleSetKeychain, true);
   self.expose('setwallet', self.handleSetWallet);
+  self.expose('session', self.handleSession);
   self.expose('unlock', self.handleUnlock);
+  self.expose('lock', self.handleLock);
+  self.expose('freezewallet', self.handleFreezeWallet);
 
-
-  // Listen
-  var port = self.args.rpcport || (bitgo.network === 'prod' ? 9332 : 19332);
-  self.server.listen(port, self.args.rpcbind);
-  console.log('JSON-RPC server active on ' + self.args.rpcbind + ':' + port);
+  return Q().then(function() {
+    // Proxy bitcoind
+    if (self.args.proxy) {
+      return self.setupProxy();
+    }
+  })
+  .then(function() {
+    // Listen
+    var port = self.args.rpcport || (bitgo.network === 'prod' ? 9332 : 19332);
+    self.server.listen(port, self.args.rpcbind);
+    self.log('JSON-RPC server active on ' + self.args.rpcbind + ':' + port);
+  })
+  .catch(function(err) {
+    self.log(err.message);
+    // self.log(err.stack);
+  })
+  .done();
 };
 
 exports = module.exports = BitGoD;
