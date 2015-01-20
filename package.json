@@ -4,7 +4,7 @@
   "description": "BitGo API proxy conforming to bitcoind JSON-RPC API",
   "main": "src/index.js",
   "bin": {
-    "bitgo": "bin/bitgo"
+    "bitgo": "bin/bitgod"
   },
   "repository": {
     "type": "git",
