@@ -577,8 +577,17 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
 
   // Divide outputs into 3 sets (0-confirm, 1-confirm, more-than-1-confirm)
   var outputGroup = function(output) {
-    return output.confirmations > 1 ? 2 : output.confirmations;
+    var confirmations = output.confirmations || 0;
+    assert(confirmations >= 0);
+    switch (confirmations) {
+      case 0:
+      case 1:
+        return confirmations;
+      default:
+        return 2;
+    }
   };
+
   var groups = [0, 1, 2];
 
   var outputGroups = groups.map(function(group) {
