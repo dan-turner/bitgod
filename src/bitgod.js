@@ -5,6 +5,7 @@ var ArgumentParser = require('argparse').ArgumentParser;
 var assert = require('assert');
 var bitgo = require('bitgo');
 var bitcoin = require('bitcoinjs-lib');
+var ini = require('ini');
 var rpc = require('json-rpc2');
 var Q = require('q');
 var fs = require('fs');
@@ -18,23 +19,40 @@ var BITGOD_VERSION = pjson.version;
 var BitGoD = function () {
 };
 
+BitGoD.prototype.getConfig = function(confFile) {
+  var iniData;
+  try {
+    iniData = fs.readFileSync(confFile || '/etc/bitgod.conf', 'utf-8');
+  } catch (err) {
+    // Only throw on failure to read if confFile file was explcitly specified
+    if (confFile) {
+      throw new Error("couldn't read config file " + confFile);
+    }
+  }
+  return iniData ? ini.parse(iniData) : {};
+};
+
 BitGoD.prototype.getArgs = function() {
   var parser = new ArgumentParser({
-    version: '0.1',
+    version: '0.2.0',
     addHelp:true,
     description: 'BitGoD'
   });
 
   parser.addArgument(
-    ['-prod'], {
-      action: 'storeTrue',
-      help: 'Use prod network (default is testnet)'
+    ['-conf'], {
+      help: 'Specify configuration file (default: /etc/bitgod.conf)'
+    }
+  );
+
+  parser.addArgument(
+    ['-env'], {
+      help: 'BitGo environment to use [prod|test (default)]'
   });
 
   parser.addArgument(
     ['-rpcbind'], {
       help: 'Bind to given address to listen for JSON-RPC connections (default: localhost)',
-      defaultValue: 'localhost'
   });
 
   parser.addArgument(
@@ -43,21 +61,28 @@ BitGoD.prototype.getArgs = function() {
   });
 
   parser.addArgument(
+    ['-rpcuser'], {
+      help: 'Username for RPC basic auth (default: none)'
+  });
+
+  parser.addArgument(
+    ['-rpcpassword'], {
+      help: 'Password for RPC basic auth (default: none)'
+  });
+
+  parser.addArgument(
     ['-proxyhost'], {
-      help: 'Host for proxied bitcoind JSON-RPC',
-      defaultValue: 'localhost'
+      help: 'Host for proxied bitcoind JSON-RPC (default: localhost)'
   });
 
   parser.addArgument(
     ['-proxyport'], {
       help: 'Port for proxied bitcoind JSON-RPC (default: 8332 or testnet: 18332)',
-      defaultValue: 18332
   });
 
   parser.addArgument(
     ['-proxyuser'], {
-      help: 'Username for proxied bitcoind JSON-RPC',
-      defaultValue: 'bitcoinrpc'
+      help: 'Username for proxied bitcoind JSON-RPC (default: bitcoinrpc)'
   });
 
   parser.addArgument(
@@ -67,22 +92,19 @@ BitGoD.prototype.getArgs = function() {
 
   parser.addArgument(
     ['-proxy'], {
-      action: 'storeTrue',
       help: 'Proxy to bitcoind JSON-RPC backend for non-wallet commands'
   });
 
   parser.addArgument(
     ['-validate'], {
-      nargs: '?',
       choices: ['loose', 'strict'],
-      constant: 'loose',
       help: 'Validate transaction data against local bitcoind (requires -proxy)'
   });
 
   return parser.parseArgs();
 };
 
-BitGoD.prototype.setupProxy = function() {
+BitGoD.prototype.setupProxy = function(config) {
   var self = this;
 
   if (this.client) {
@@ -98,13 +120,13 @@ BitGoD.prototype.setupProxy = function() {
     util: 'createmultisig estimatefee estimatepriority verifymessage'
   };
 
-  var proxyPort = this.args.proxyport || (this.bitgo.network === 'prod' ? 8332 : 18332);
+  var proxyPort = config.proxyport || (bitgo.getNetwork() === 'prod' ? 8332 : 18332);
 
   this.client = rpc.Client.$create(
     proxyPort,
-    this.args.proxyhost,
-    this.args.proxyuser,
-    this.args.proxypassword
+    config.proxyhost,
+    config.proxyuser,
+    config.proxypassword
   );
 
   var proxyCommand = function(cmd) {
@@ -123,8 +145,16 @@ BitGoD.prototype.setupProxy = function() {
 
   // Verify we can actually connect
   return this.callLocalMethod('getinfo', [])
+  .then(function(result) {
+    var bitcoindNetwork = result.testnet ? 'testnet' : 'prod';
+    if (bitcoindNetwork !== bitgo.getNetwork()) {
+      throw new Error('bitcoind using ' + bitcoindNetwork + ', bitgod using ' + bitgo.getNetwork());
+    }
+    console.log('Connected to proxy bitcoind at ' + [config.proxyhost, proxyPort].join(':'));
+    console.dir(result);
+  })
   .catch(function(err) {
-    throw new Error('Could not connect to proxy');
+    throw new Error('Error connecting to proxy: ' + err.message);
   });
 };
 
@@ -666,7 +696,8 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
       }
 
       // validate address
-      var address = bitcoin.Address.fromOutputScript(txout.script, this.network).toBase58Check();
+      var network = bitcoin.networks[bitgo.getNetwork()];
+      var address = bitcoin.Address.fromOutputScript(txout.script, network).toBase58Check();
       if (o.address !== address) {
         throwValidationError(o, 'Address mismatch', o.address, address);
       }
@@ -908,7 +939,7 @@ BitGoD.prototype.handleGetInfo = function() {
     var info = {
       bitgod: true,
       version: BITGOD_VERSION,
-      testnet: bitgo.network === 'testnet',
+      testnet: bitgo.getNetwork() === 'testnet',
       token: hasToken,
       wallet: self.wallet ? self.wallet.id() : false,
       keychain: !!self.keychain,
@@ -949,37 +980,64 @@ BitGoD.prototype.expose = function(name, method, noLogArgs) {
 };
 
 BitGoD.prototype.run = function() {
-  this.args = this.getArgs();
-  var self = this;
 
-  // Configure bitcoin network (prod/testnet)
-  var network = 'testnet';
-  if (process.env.BITGO_NETWORK === 'prod' || self.args.prod) {
-    network = 'prod';
-  }
-  bitgo.setNetwork(network);
-  this.network = bitcoin.networks[network];
+  // Defaults (get overridden by conf file, or command line args)
+  var config = {
+    proxyhost: 'localhost',
+    proxyuser: 'bitcoinrpc',
+    rpcbind: 'localhost',
+    env: 'test'
+  };
 
-  // Instantiate BitGo
-  self.bitgo = new bitgo.BitGo({
-    useProduction: network === 'prod'
+  // Parse command line args
+  var args = this.getArgs();
+
+  // Get config (config file location depends on command line arg -conf)
+  var parsedConfig = this.getConfig(args.conf);
+
+  // Conf file overrides default options
+  _.assign(config, parsedConfig);
+
+  // Command-line args override config file options
+  _.keys(args).forEach(function(k) {
+    // parseArgs annoyingly sets missing values to null
+    if (args[k] !== null) {
+      config[k] = args[k];
+    }
   });
 
+  var self = this;
+
+  // Instantiate BitGo
+  this.bitgo = new bitgo.BitGo({ env: config.env });
+
   // Set up RPC server
-  self.server = rpc.Server.$create({
+  this.server = rpc.Server.$create({
     'websocket': true,
     'headers': {
       'Access-Control-Allow-Origin': '*',
     }
   });
 
+  // Basic Auth
+  if (!!config.rpcuser !== !!config.rpcpassword) {
+    throw new Error('rpcuser specified without rpcpassword or vice versa');
+  }
+  if (config.rpcuser) {
+    this.server.enableAuth(config.rpcuser, config.rpcpassword);
+    console.log('Basic Auth enabled for user ' + config.rpcuser);
+  }
+
   // Validation vs bitcoind
-  if (self.args.validate) {
-    if (!self.args.proxy) {
+  if (config.validate) {
+    if (config.validate !== 'loose' && config.validate !== 'strict') {
+      throw new Error('unknown validation mode - supported modes are loose and strict');
+    }
+    if (!config.proxy) {
       throw new Error('validate option requires a proxy bitcoind');
     }
-    self.validate = self.args.validate;
-    console.log('Validating in ' + self.validate + ' mode');
+    this.validate = config.validate;
+    console.log('Validating in ' + this.validate + ' mode');
   }
 
   // Will not implement
@@ -995,42 +1053,42 @@ BitGoD.prototype.run = function() {
   });
 
   // BitGo-handled bitcoind methods
-  self.expose('getnewaddress', self.handleGetNewAddress);
-  self.expose('getrawchangeaddress', self.handleGetRawChangeAddress);
-  self.expose('getbalance', self.handleGetBalance);
-  self.expose('getinfo', self.handleGetInfo);
-  self.expose('getwalletinfo', self.handleGetWalletInfo);
-  self.expose('getunconfirmedbalance', self.handleGetUnconfirmedBalance);
-  self.expose('listaccounts', self.handleListAccounts);
-  self.expose('listunspent', self.handleListUnspent);
-  self.expose('sendtoaddress', self.handleSendToAddress);
-  self.expose('sendfrom', self.handleSendFrom);
-  self.expose('listtransactions', self.handleListTransactions);
-  self.expose('sendmany', self.handleSendMany);
-  self.expose('validateaddress', self.handleValidateAddress);
-  self.expose('walletpassphrase', self.handleWalletPassphrase, true);
-  self.expose('walletlock', self.handleWalletLock);
+  this.expose('getnewaddress', this.handleGetNewAddress);
+  this.expose('getrawchangeaddress', this.handleGetRawChangeAddress);
+  this.expose('getbalance', this.handleGetBalance);
+  this.expose('getinfo', this.handleGetInfo);
+  this.expose('getwalletinfo', this.handleGetWalletInfo);
+  this.expose('getunconfirmedbalance', this.handleGetUnconfirmedBalance);
+  this.expose('listaccounts', this.handleListAccounts);
+  this.expose('listunspent', this.handleListUnspent);
+  this.expose('sendtoaddress', this.handleSendToAddress);
+  this.expose('sendfrom', this.handleSendFrom);
+  this.expose('listtransactions', this.handleListTransactions);
+  this.expose('sendmany', this.handleSendMany);
+  this.expose('validateaddress', this.handleValidateAddress);
+  this.expose('walletpassphrase', this.handleWalletPassphrase, true);
+  this.expose('walletlock', this.handleWalletLock);
 
   // BitGo-specific methods
-  self.expose('settoken', self.handleSetToken, true);
-  self.expose('setkeychain', self.handleSetKeychain, true);
-  self.expose('setwallet', self.handleSetWallet);
-  self.expose('session', self.handleSession);
-  self.expose('unlock', self.handleUnlock);
-  self.expose('lock', self.handleLock);
-  self.expose('freezewallet', self.handleFreezeWallet);
+  this.expose('settoken', this.handleSetToken, true);
+  this.expose('setkeychain', this.handleSetKeychain, true);
+  this.expose('setwallet', this.handleSetWallet);
+  this.expose('session', this.handleSession);
+  this.expose('unlock', this.handleUnlock);
+  this.expose('lock', this.handleLock);
+  this.expose('freezewallet', this.handleFreezeWallet);
 
   return Q().then(function() {
     // Proxy bitcoind
-    if (self.args.proxy) {
-      return self.setupProxy();
+    if (config.proxy) {
+      return self.setupProxy(config);
     }
   })
   .then(function() {
     // Listen
-    var port = self.args.rpcport || (bitgo.network === 'prod' ? 9332 : 19332);
-    self.server.listen(port, self.args.rpcbind);
-    self.log('JSON-RPC server active on ' + self.args.rpcbind + ':' + port);
+    var port = config.rpcport || (bitgo.getNetwork() === 'prod' ? 9332 : 19332);
+    self.server.listen(port, config.rpcbind);
+    self.log('JSON-RPC server active on ' + config.rpcbind + ':' + port);
   })
   .catch(function(err) {
     self.log(err.message);
