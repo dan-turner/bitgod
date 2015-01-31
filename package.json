@@ -6,6 +6,9 @@
   "bin": {
     "bitgo": "bin/bitgod"
   },
+  "scripts": {
+    "test": "ulimit -S -n 1024; mocha --ui bdd --reporter spec ./test --recursive -t 5000"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/BitGo/bitgod.git"
@@ -25,7 +28,7 @@
     "argparse": "0.1.16",
     "assert": "0.4.9",
     "bitcoinjs-lib": "1.4.3",
-    "bitgo": "0.9.12",
+    "bitgo": "0.9.18",
     "ini": "1.3.2",
     "json-rpc2": "0.8.1",
     "lodash": "2.4.1",
@@ -34,5 +37,10 @@
     "underscore.string": "2.4.0",
     "winston": "0.7.3"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "nock": "^0.58.0",
+    "should": "^4.6.2"
+  }
 }

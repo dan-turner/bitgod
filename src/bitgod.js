@@ -14,9 +14,13 @@ _.string = require('underscore.string');
 var pjson = require('../package.json');
 var BITGOD_VERSION = pjson.version;
 
-// Q.longStackSupport = true;
-
 var BitGoD = function () {
+  this.loggingEnabled = true;
+};
+
+BitGoD.prototype.setLoggingEnabled = function(loggingEnabled) {
+  this.loggingEnabled = !!loggingEnabled;
+  return this;
 };
 
 BitGoD.prototype.getConfig = function(confFile) {
@@ -32,7 +36,13 @@ BitGoD.prototype.getConfig = function(confFile) {
   return iniData ? ini.parse(iniData) : {};
 };
 
-BitGoD.prototype.getArgs = function() {
+/**
+ * Parse command line args (from process.argv, or directly from args, if specified)
+ *
+ * @param   {String[]} args   optional direct-specified args (good for testing)
+ * @returns {Object}      object with parsed args
+ */
+BitGoD.prototype.getArgs = function(args) {
   var parser = new ArgumentParser({
     version: '0.2.0',
     addHelp:true,
@@ -101,7 +111,7 @@ BitGoD.prototype.getArgs = function() {
       help: 'Validate transaction data against local bitcoind (requires -proxy)'
   });
 
-  return parser.parseArgs();
+  return parser.parseArgs(args);
 };
 
 BitGoD.prototype.setupProxy = function(config) {
@@ -262,7 +272,9 @@ BitGoD.prototype.error = function(message, code) {
 };
 
 BitGoD.prototype.log = function() {
-  return console.log.apply(console, arguments);
+  if (this.loggingEnabled) {
+    return console.log.apply(console, arguments);
+  }
 };
 
 BitGoD.prototype.modifyError = function(err) {
@@ -972,14 +984,14 @@ BitGoD.prototype.expose = function(name, method, noLogArgs) {
       return method.apply(self, args);
     })
     .catch(function(err) {
-      console.log(err.stack);
+      self.log(err.stack);
       throw err;
     })
     .nodeify(callback);
   });
 };
 
-BitGoD.prototype.run = function() {
+BitGoD.prototype.run = function(testArgString) {
 
   // Defaults (get overridden by conf file, or command line args)
   var config = {
@@ -990,7 +1002,7 @@ BitGoD.prototype.run = function() {
   };
 
   // Parse command line args
-  var args = this.getArgs();
+  var args = this.getArgs(testArgString && testArgString.split(' '));
 
   // Get config (config file location depends on command line arg -conf)
   var parsedConfig = this.getConfig(args.conf);
@@ -1025,7 +1037,7 @@ BitGoD.prototype.run = function() {
   }
   if (config.rpcuser) {
     this.server.enableAuth(config.rpcuser, config.rpcpassword);
-    console.log('Basic Auth enabled for user ' + config.rpcuser);
+    this.log('Basic Auth enabled for user ' + config.rpcuser);
   }
 
   // Validation vs bitcoind
@@ -1037,18 +1049,22 @@ BitGoD.prototype.run = function() {
       throw new Error('validate option requires a proxy bitcoind');
     }
     this.validate = config.validate;
-    console.log('Validating in ' + this.validate + ' mode');
+    this.log('Validating in ' + this.validate + ' mode');
   }
 
+  self.notImplemented = [];
+
   // Will not implement
-  var willNotImplement = 'addmultisigaddress backupwallet dumpprivkey dumpwallet getaccount getaccountaddress  importaddress importprivkey importwallet keypoolrefill listaddressgroupings listlockunspent listreceivedbyaccount lockunspent move setaccount signmessage';
+  var willNotImplement = 'addmultisigaddress backupwallet dumpprivkey dumpwallet getaccount getaccountaddress importaddress importprivkey importwallet keypoolrefill listaddressgroupings listlockunspent listreceivedbyaccount lockunspent move setaccount signmessage';
   willNotImplement.split(' ').forEach(function(api) {
+    self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
   });
 
   // Just not implemented yet
   var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount getreceivedbyaddress gettransaction listsinceblock settxfee';
   notImplemented.split(' ').forEach(function(api) {
+    self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
   });
 
