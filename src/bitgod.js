@@ -678,7 +678,7 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
     // which have 2+ confirms.
     var minGroupToValidate = self.validate === 'strict' ? 1 : 2;
 
-    groups.slice(minGroupToValidate, 2).forEach(function(group) {
+    groups.slice(minGroupToValidate).forEach(function(group) {
       var failedTransactions = txidGroups[group].filter(function(txid) { return !txByIdGroups[group][txid]; });
       if (failedTransactions.length > 0) {
         throwValidationError(null, 'Missing txids ' + failedTransactions.join(', '));
@@ -697,7 +697,10 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
 
       // If we don't have the tx, just return. We checked existence above.
       if (!tx) {
-        assert(group < minGroupToValidate);
+        if (group >= minGroupToValidate) {
+          console.dir(o);
+          throw new Error('Uh oh - missing txid ' + o.txid + ' but no previous error. Group = ' + group);
+        }
         return;
       }
       var txout = tx.outs[o.vout];
