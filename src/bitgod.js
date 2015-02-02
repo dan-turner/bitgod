@@ -335,9 +335,9 @@ BitGoD.prototype.handleSetWallet = function(walletId) {
 
 BitGoD.prototype.handleValidateAddress = function(address) {
   var result = {
-    valid: this.bitgo.verifyAddress({ address: address })
+    isvalid: this.bitgo.verifyAddress({ address: address })
   };
-  if (!result.valid) {
+  if (!result.isvalid) {
     return result;
   }
   result.address = address;
