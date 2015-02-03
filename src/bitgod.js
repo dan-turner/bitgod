@@ -1022,9 +1022,10 @@ BitGoD.prototype.run = function(testArgString) {
   });
 
   var self = this;
+  var userAgent = "BitGoD/" + BITGOD_VERSION;
 
   // Instantiate BitGo
-  this.bitgo = new bitgo.BitGo({ env: config.env });
+  this.bitgo = new bitgo.BitGo({ env: config.env, userAgent: userAgent });
 
   // Set up RPC server
   this.server = rpc.Server.$create({
