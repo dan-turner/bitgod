@@ -106,6 +106,11 @@ BitGoD.prototype.getArgs = function(args) {
   });
 
   parser.addArgument(
+    ['-ignoreaccount'], {
+      help: 'Ignore wallet account values (used in deployments which do not use it to differentiate funds)'
+  });
+
+  parser.addArgument(
     ['-validate'], {
       choices: ['loose', 'strict'],
       help: 'Validate transaction data against local bitcoind (requires -proxy)'
@@ -271,7 +276,8 @@ BitGoD.prototype.getInteger = function(val, defaultValue) {
 };
 
 BitGoD.prototype.ensureBlankAccount = function(account) {
-  if (typeof(account) !== 'undefined' && account !== '') {
+  var self = this;
+  if (typeof(account) !== 'undefined' && account !== '' && !self.ignoreAccount) {
     throw new Error('accounts not supported - use blank account only');
   }
 };
@@ -598,6 +604,51 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   });
 };
 
+BitGoD.prototype.buildOutputListFromTx = function(tx, outputList) {
+  var self = this;
+
+  outputList = outputList || [];
+
+  var outputCount = tx.outputs.length;
+  tx.outputs.forEach(function(output, outputIndex) {
+    // Skip the output if it's an overall spend, but we have a positive output to us that
+    // is last (the change address)
+    // or if it's an overall receive, and there's a positive output elsewhere.
+    // TODO: fix this the right way to know whether it's change address if change
+    // addresses are no longer always put last.
+    if ((tx.value < 0 && output.isMine && output.vout === outputCount - 1) ||
+    (tx.value > 0 && !output.isMine) ) {
+      return;
+    }
+    output.netValue = output.isMine ? output.value : -output.value;
+    tx.amount += output.netValue;
+    var record = {
+      account: '',
+      address: output.account,
+      category:  output.isMine ? 'receive' : 'send',
+      amount: self.toBTC(output.netValue),
+      vout: output.vout,
+      confirmations: tx.confirmations,
+      blockhash: tx.blockhash,
+      // blockindex: 0,  // don't have it
+      // blocktime: '',  // don't have it
+      txid: tx.id,
+      time: new Date(tx.date).getTime() / 1000,
+      timereceived: new Date(tx.date).getTime() / 1000,
+
+      // Non-standard fields (could strip after validation)
+      height: tx.height,
+      satoshis: output.value
+    };
+    if (tx.value < 0) {
+      record.fee = self.toBTC(-tx.fee);
+    }
+    outputList.push(record);
+  });
+
+  return outputList;
+};
+
 /**
  * Validate a list of tx outputs against the local bitcoind
  * The following are checked for each output:
@@ -789,54 +840,16 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
 
   var outputList = [];
   var getTransactionsInternal = function(skip) {
-
     return self.wallet.transactions({ limit: 500, skip: skip })
     .then(function(res) {
-
       res.transactions.every(function(tx) {
-
         for (var index = 0; index < tx.entries.length; ++index) {
           if (tx.entries[index].account == self.wallet.id()) {
             tx.value = tx.entries[index].value;
             break;
           }
         }
-
-        var outputCount = tx.outputs.length;
-        tx.outputs.forEach(function(output, outputIndex) {
-          // Skip the output if it's an overall spend, but we have a positive output to us that
-          // is last (the change address)
-          // or if it's an overall receive, and there's a positive output elsewhere.
-          // TODO: fix this the right way to know whether it's change address if change
-          // addresses are no longer always put last.
-          if ((tx.value < 0 && output.isMine && output.vout === outputCount - 1) ||
-              (tx.value > 0 && !output.isMine) ) {
-            return;
-          }
-          output.netValue = output.isMine ? output.value : -output.value;
-          var record = {
-            account: '',
-            address: output.account,
-            category:  output.isMine ? 'receive' : 'send',
-            amount: self.toBTC(output.netValue),
-            vout: output.vout,
-            confirmations: tx.confirmations,
-            blockhash: tx.blockhash,
-            // blockindex: 0,  // don't have it
-            // blocktime: '',  // don't have it
-            txid: tx.id,
-            time: new Date(tx.date).getTime() / 1000,
-            timereceived: new Date(tx.date).getTime() / 1000,
-
-            // Non-standard fields (could strip after validation)
-            height: tx.height,
-            satoshis: output.value
-          };
-          if (tx.value < 0) {
-            record.fee = self.toBTC(-tx.fee);
-          }
-          outputList.push(record);
-        });
+        self.buildOutputListFromTx(tx, outputList);
         return (outputList.length < count + from);
       });
 
@@ -916,6 +929,66 @@ BitGoD.prototype.handleGetReceivedByAddress = function(address, minConfirms) {
   });
 };
 
+BitGoD.prototype.handleGetTransaction = function(txid) {
+  this.ensureWallet();
+  var self = this;
+
+  var outputList = [];
+  var tx;
+  return self.wallet.getTransaction({ id: txid })
+  .then(function(res) {
+    tx = res;
+    tx.amount = 0;
+
+    for (var index = 0; index < tx.entries.length; ++index) {
+      if (tx.entries[index].account == self.wallet.id()) {
+        tx.value = tx.entries[index].value;
+        break;
+      }
+    }
+
+    return self.buildOutputListFromTx(tx, outputList);
+  })
+  .then(function(outputs) {
+    if (!self.validate) {
+      return outputs;
+    }
+    return self.validateTxOutputs(outputs);
+  })
+  .then(function(outputs) {
+
+    var result = {
+      amount: tx.amount,
+      confirmations: tx.confirmations,
+      blockhash: tx.blockhash,
+      // blockindex: 0,  // don't have it
+      // blocktime: '',  // don't have it
+      txid: tx.id,
+      time: new Date(tx.date).getTime() / 1000,
+      timereceived: new Date(tx.date).getTime() / 1000,
+      hex: tx.hex
+    };
+
+    result.details = [];
+    outputList.forEach(function(output) {
+      result.details.push({
+        address: output.address,
+        category: output.category,
+        amount: output.amount,
+        vout: output.vout
+      });
+    });
+
+    return result;
+  });
+};
+
+BitGoD.prototype.handleSetTxFee = function(btcAmount) {
+  this.ensureWallet();
+  this.txFee = Math.round(Number(btcAmount) * 1e8);
+  return true;
+};
+
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   this.ensureWallet();
   var self = this;
@@ -928,7 +1001,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     return self.wallet.createTransaction({
       minConfirms: 1,
       recipients: recipients,
-      keychain: self.getSigningKeychain()
+      keychain: self.getSigningKeychain(),
+      fee: self.txFee
     });
   })
   .then(function(tx) {
@@ -960,7 +1034,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     return self.wallet.createTransaction({
       minConfirms: minConfirms,
       recipients: recipients,
-      keychain: self.getSigningKeychain()
+      keychain: self.getSigningKeychain(),
+      fee: self.txFee
     });
   })
   .then(function(tx) {
@@ -1112,6 +1187,9 @@ BitGoD.prototype.run = function(testArgString) {
     this.log('Validating in ' + this.validate + ' mode');
   }
 
+  // Remember if it is ok to ignore account
+  self.ignoreAccount = !!(config.ignoreaccount);
+
   self.notImplemented = [];
 
   // Will not implement
@@ -1122,7 +1200,7 @@ BitGoD.prototype.run = function(testArgString) {
   });
 
   // Just not implemented yet
-  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount gettransaction listsinceblock settxfee';
+  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount listsinceblock';
   notImplemented.split(' ').forEach(function(api) {
     self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
@@ -1135,6 +1213,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('getinfo', this.handleGetInfo);
   this.expose('getwalletinfo', this.handleGetWalletInfo);
   this.expose('getunconfirmedbalance', this.handleGetUnconfirmedBalance);
+  this.expose('gettransaction', this.handleGetTransaction);
   this.expose('listaccounts', this.handleListAccounts);
   this.expose('listunspent', this.handleListUnspent);
   this.expose('sendtoaddress', this.handleSendToAddress);
@@ -1142,6 +1221,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('listtransactions', this.handleListTransactions);
   this.expose('getreceivedbyaddress', this.handleGetReceivedByAddress);
   this.expose('sendmany', this.handleSendMany);
+  this.expose('settxfee', this.handleSetTxFee);
   this.expose('validateaddress', this.handleValidateAddress);
   this.expose('walletpassphrase', this.handleWalletPassphrase, true);
   this.expose('walletlock', this.handleWalletLock);
