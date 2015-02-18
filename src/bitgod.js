@@ -165,6 +165,19 @@ BitGoD.prototype.setupProxy = function(config) {
   })
   .catch(function(err) {
     throw new Error('Error connecting to proxy: ' + err.message);
+  })
+  .then(function() {
+    // If validation is on, ensure that bitcoind has txindex=1
+    if (self.validate) {
+      // Random old spent transactions that bitcoind won't have unless in txindex mode
+      var txid = (bitgo.getNetwork() === 'prod') ?
+        'c65602d4310c1ca9c560705176ebc01c34a4bac40a3af432be839df1cf8dd87c' :
+        '44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a';
+      return self.getTransactionLocal(txid)
+      .catch(function(err) {
+        throw new Error('bitcoind must have txindex enabled to use validation');
+      });
+    }
   });
 };
 
@@ -860,6 +873,49 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
   });
 };
 
+BitGoD.prototype.handleGetReceivedByAddress = function(address, minConfirms) {
+  this.ensureWallet();
+  var self = this;
+
+  if (!address) {
+    throw this.error('No address provided', -1);
+  }
+  if (!this.bitgo.verifyAddress({ address: address })) {
+    throw this.error('Invalid Bitcoin address', -5);
+  }
+  minConfirms = this.getNumber(minConfirms, 1);
+  var totalReceived = 0;
+
+  var getTransactionsInternal = function(skip) {
+    // TODO: use SDK func once it supports paging
+    var limit = 500;
+    var url = self.bitgo.url("/address/" + address + '/tx?limit=' + limit + '&skip=' + skip);
+    return self.bitgo.get(url)
+    .result()
+    .then(function(res) {
+      res.transactions.forEach(function(tx) {
+        if (tx.confirmations >= minConfirms) {
+          tx.outputs.forEach(function(output) {
+            if (output.account === address) {
+              totalReceived += output.value;
+            }
+          });
+        }
+      });
+
+      if (res.count < limit) {
+        return;
+      }
+      return getTransactionsInternal(skip + res.count);
+    });
+  };
+
+  return getTransactionsInternal(0)
+  .then(function() {
+    return self.toBTC(totalReceived);
+  });
+};
+
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   this.ensureWallet();
   var self = this;
@@ -1066,7 +1122,7 @@ BitGoD.prototype.run = function(testArgString) {
   });
 
   // Just not implemented yet
-  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount getreceivedbyaddress gettransaction listsinceblock settxfee';
+  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount gettransaction listsinceblock settxfee';
   notImplemented.split(' ').forEach(function(api) {
     self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
@@ -1084,6 +1140,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('sendtoaddress', this.handleSendToAddress);
   this.expose('sendfrom', this.handleSendFrom);
   this.expose('listtransactions', this.handleListTransactions);
+  this.expose('getreceivedbyaddress', this.handleGetReceivedByAddress);
   this.expose('sendmany', this.handleSendMany);
   this.expose('validateaddress', this.handleValidateAddress);
   this.expose('walletpassphrase', this.handleWalletPassphrase, true);
