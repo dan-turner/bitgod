@@ -1,10 +1,10 @@
 {
   "name": "bitgod",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "BitGo API proxy conforming to bitcoind JSON-RPC API",
   "main": "src/index.js",
   "bin": {
-    "bitgo": "bin/bitgod"
+    "bitgod": "bin/bitgod"
   },
   "scripts": {
     "test": "ulimit -S -n 1024; mocha --ui bdd --reporter spec ./test --recursive -t 5000"
