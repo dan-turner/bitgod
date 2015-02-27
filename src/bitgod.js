@@ -507,6 +507,7 @@ BitGoD.prototype.handleWalletPassphrase = function(passphrase, timeout) {
 
 BitGoD.prototype.handleWalletLock = function() {
   delete this.passphrase;
+  delete this.keychain.xprv;
 };
 
 BitGoD.prototype.newAddress = function(chain) {
