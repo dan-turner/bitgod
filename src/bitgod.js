@@ -135,7 +135,7 @@ BitGoD.prototype.setupProxy = function(config) {
     util: 'createmultisig estimatefee estimatepriority verifymessage'
   };
 
-  var proxyPort = config.proxyport || (bitgo.getNetwork() === 'prod' ? 8332 : 18332);
+  var proxyPort = config.proxyport || (bitgo.getNetwork() === 'bitcoin' ? 8332 : 18332);
 
   this.client = rpc.Client.$create(
     proxyPort,
@@ -161,7 +161,7 @@ BitGoD.prototype.setupProxy = function(config) {
   // Verify we can actually connect
   return this.callLocalMethod('getinfo', [])
   .then(function(result) {
-    var bitcoindNetwork = result.testnet ? 'testnet' : 'prod';
+    var bitcoindNetwork = result.testnet ? 'testnet' : 'bitcoin';
     if (bitcoindNetwork !== bitgo.getNetwork()) {
       throw new Error('bitcoind using ' + bitcoindNetwork + ', bitgod using ' + bitgo.getNetwork());
     }
@@ -175,7 +175,7 @@ BitGoD.prototype.setupProxy = function(config) {
     // If validation is on, ensure that bitcoind has txindex=1
     if (self.validate) {
       // Random old spent transactions that bitcoind won't have unless in txindex mode
-      var txid = (bitgo.getNetwork() === 'prod') ?
+      var txid = (bitgo.getNetwork() === 'bitcoin') ?
         'c65602d4310c1ca9c560705176ebc01c34a4bac40a3af432be839df1cf8dd87c' :
         '44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a';
       return self.getTransactionLocal(txid)
@@ -424,15 +424,15 @@ BitGoD.prototype.handleSetKeychain = function(xprv) {
   }
   var bip32;
   try {
-    bip32 = new bitgo.BIP32(xprv);
+    bip32 = bitcoin.HDNode.fromBase58(xprv);
     this.ensureWallet();
-    if (bip32.extended_private_key_string() !== xprv) {
+    if (bip32.toBase58() !== xprv) {
       throw new Error();
     }
   } catch (err) {
     throw new Error('Invalid keychain xprv');
   }
-  var xpub = bip32.extended_public_key_string();
+  var xpub = bip32.neutered().toBase58();
 
   return this.bitgo.keychains().get({xpub: xpub})
   .then(function(keychain) {
@@ -1252,7 +1252,7 @@ BitGoD.prototype.run = function(testArgString) {
   })
   .then(function() {
     // Listen
-    var port = config.rpcport || (bitgo.getNetwork() === 'prod' ? 9332 : 19332);
+    var port = config.rpcport || (bitgo.getNetwork() === 'bitcoin' ? 9332 : 19332);
     self.server.listen(port, config.rpcbind);
     self.log('JSON-RPC server active on ' + config.rpcbind + ':' + port);
   })

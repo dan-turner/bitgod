@@ -11,6 +11,7 @@ var nock = require('nock');
 var pjson = require('../package.json');
 var _ = require('lodash');
 var results = require('./results');
+var bitcoin = require('bitcoinjs-lib');
 
 var BitGoD = require('../src/bitgod');
 
@@ -195,6 +196,61 @@ describe('BitGoD', function() {
       return callRPC('setwallet', '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
       .then(function(result) {
         result.should.equal('Set wallet: 2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX');
+      });
+    });
+
+    it('setkeychain fails for invalid xprv', function() {
+      var buf = new Buffer(512 / 8);
+      buf.fill(0);
+      var xprv = bitcoin.HDNode.fromSeedBuffer(buf).toBase58();
+      return callRPC('setkeychain', xprv + 'incorrect-data-makes-xprv-invalid')
+      .catch(function(err) {
+        err.message.should.equal('Error: Invalid keychain xprv');
+      });
+    });
+
+    it('setkeychain derives the correct public key', function() {
+      // in this test, we're trying to set a keychain to which we don't have
+      // the private key. as such, the setkeychain API call actually does not
+      // work. However, we still want to test the logic that derives the xpub
+      // from the xprv inside handleSetKeychain. As such, we mock up the
+      // keychains() call.
+      var buf = new Buffer(512 / 8);
+      buf.fill(0);
+      var bip32 = bitcoin.HDNode.fromSeedBuffer(buf);
+      var xprv = bip32.toBase58();
+      var xpub = bip32.neutered().toBase58();
+
+      // mock up bitgo.keychains so we don't have to actually get a keychain
+      // that exists - just make sure no error is thrown before these methods
+      // are called. we need to backup the two values, bitgo and keychain, that
+      // are changed when setkeychain is called, and we must return these saved
+      // values to the correct values in order to not mess up the other tests.
+      var bitgobackup = bitgod.bitgo;
+      var keychainbackup = bitgod.keychain;
+      bitgod.bitgo = {};
+      bitgod.bitgo.keychains = function() {
+        return {get: function(params) {
+          // this is the xpub corresponding to a 512 bit seed of all 0s
+          params.xpub.should.equal('xpub661MyMwAqRbcGbBpWNyiRmuKRQv1bxek4VDxEamwv5eouoLdVB8d8e29h8Y5C9R6maERkgbWZ8wguEZS69bUMzUnhsvkf6s3aabrjMyiT1k');
+
+          return {then: function(f) {
+            var keychain = {};
+            return Q.all([f(keychain)]);
+          }};
+        }};
+      };
+
+      return callRPC('setkeychain', xprv)
+      .then(function(result) {
+        result[0].should.equal('Keychain set');
+        bitgod.keychain = keychainbackup;
+        bitgod.bitgo = bitgobackup;
+      })
+      .catch(function() {
+        bitgod.keychain = keychainbackup;
+        bitgod.bitgo = bitgobackup;
+        throw new Error('setkeychain failed');
       });
     });
 
