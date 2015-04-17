@@ -29,7 +29,7 @@
     "argparse": "0.1.16",
     "assert": "0.4.9",
     "bitcoinjs-lib": "1.5.4",
-    "bitgo": "0.10.0",
+    "bitgo": "0.11.0",
     "ini": "1.3.2",
     "json-rpc2": "0.8.1",
     "lodash": "2.4.1",

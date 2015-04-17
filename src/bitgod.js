@@ -1011,9 +1011,12 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     return self.wallet.createTransaction({
       minConfirms: 1,
       recipients: recipients,
-      keychain: self.getSigningKeychain(),
       feeRate: self.txFeeRate
     });
+  })
+  .then(function(result) {
+    result.keychain = self.getSigningKeychain();
+    return self.wallet.signTransaction(result);
   })
   .then(function(tx) {
     return self.wallet.sendTransaction({
@@ -1044,9 +1047,12 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     return self.wallet.createTransaction({
       minConfirms: minConfirms,
       recipients: recipients,
-      keychain: self.getSigningKeychain(),
       feeRate: self.txFeeRate
     });
+  })
+  .then(function(result) {
+    result.keychain = self.getSigningKeychain();
+    return self.wallet.signTransaction(result);
   })
   .then(function(tx) {
     return self.wallet.sendTransaction({
