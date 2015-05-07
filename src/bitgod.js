@@ -637,7 +637,7 @@ BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList) {
     // or if it's an overall receive, and there's a positive output elsewhere.
     // TODO: fix this the right way to know whether it's change address if change
     // addresses are no longer always put last.
-    if ((tx.netValue < 0 && output.isMine && output.vout === outputCount - 1) ||
+    if ((tx.netValue < 0 && output.chain === 1) ||
     (tx.netValue > 0 && !output.isMine) ) {
       return;
     }
