@@ -844,7 +844,7 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
   });
 };
 
-BitGoD.prototype.handleListTransactions = function(account, count, from) {
+BitGoD.prototype.handleListTransactions = function(account, count, from, minHeight) {
   this.ensureWallet();
   var self = this;
 
@@ -861,7 +861,7 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
 
   var outputList = [];
   var getTransactionsInternal = function(skip) {
-    return self.wallet.transactions({ limit: 500, skip: skip })
+    return self.wallet.transactions({ limit: 500, skip: skip, minHeight: minHeight })
     .then(function(res) {
       res.transactions.every(function(tx) {
         self.processTxAndAddOutputsToList(tx, outputList);
@@ -898,6 +898,48 @@ BitGoD.prototype.handleListTransactions = function(account, count, from) {
       return outputs;
     }
     return self.validateTxOutputs(outputs);
+  });
+};
+
+BitGoD.prototype.handleListSinceBlock = function(blockHash, targetConfirms) {
+  this.ensureWallet();
+  var self = this;
+
+  // targetConfirms seems like just another way to do GetBlockHash and doesn't affect transactions
+  if (targetConfirms && targetConfirms != 1) {
+    throw new Error('targetConfirms not supported');
+  }
+
+  var transactions;
+  
+  return Q()
+  .then(function() {
+    // If a block hash was provided, find it's height. If no hash provided, then get all transactions from height of 0
+    if (blockHash) {
+      return self.bitgo.blockchain().getBlock({ id: blockHash})
+      .then(function(block) {
+        if (!block) {
+          throw this.error('Invalid block hash', -5);
+        }
+        return block.height;
+      });
+    }
+    return 0;
+  })
+  .then(function(height) {
+    // listsinceblock will return ALL transactions with no limit
+    return self.handleListTransactions("", 1e12, 0, height || undefined);
+  })
+  .then(function(result) {
+    transactions = result.reverse();
+    // Get latest block hash
+    return self.bitgo.blockchain().getBlock({ id: 'latest' });
+  })
+  .then(function(block) {
+    return {
+      transactions: transactions,
+      lastblock: block.id
+    };
   });
 };
 
@@ -1215,7 +1257,7 @@ BitGoD.prototype.run = function(testArgString) {
   });
 
   // Just not implemented yet
-  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount listsinceblock';
+  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount';
   notImplemented.split(' ').forEach(function(api) {
     self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
@@ -1234,6 +1276,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('sendtoaddress', this.handleSendToAddress);
   this.expose('sendfrom', this.handleSendFrom);
   this.expose('listtransactions', this.handleListTransactions);
+  this.expose('listsinceblock', this.handleListSinceBlock);
   this.expose('getreceivedbyaddress', this.handleGetReceivedByAddress);
   this.expose('sendmany', this.handleSendMany);
   this.expose('settxfee', this.handleSetTxFee);
