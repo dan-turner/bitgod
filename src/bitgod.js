@@ -44,7 +44,7 @@ BitGoD.prototype.getConfig = function(confFile) {
  */
 BitGoD.prototype.getArgs = function(args) {
   var parser = new ArgumentParser({
-    version: '0.2.0',
+    version: BITGOD_VERSION,
     addHelp:true,
     description: 'BitGoD'
   });
