@@ -498,10 +498,18 @@ BitGoD.prototype.handleWalletPassphrase = function(passphrase, timeout) {
 
     self.passphrase = passphrase;
 
+    self.passPhraseExpires = new Date(new Date().getTime() + timeout * 1000);
+
     // Delete the passphrase in timeout seconds (or immediately if <= 0)
-    setTimeout(function() {
-      delete self.passphrase;
-    }, timeout * 1000);
+    var passphraseTimeOutHandler = function() {
+      if (self.passPhraseExpires <= new Date()) {
+        delete self.passphrase;
+      } else {
+        setTimeout(passphraseTimeOutHandler, 1000);
+      }
+    };
+
+    passphraseTimeOutHandler();
   });
 };
 
