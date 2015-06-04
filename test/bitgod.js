@@ -341,7 +341,7 @@ describe('BitGoD', function() {
       nock('https://test.bitgo.com:443')
         .persist()
         .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
-        .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":71873015758,"balance":81873015758,"pendingApprovals":[]});
+        .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":71873015758,"balance":81873015758,"unconfirmedReceives":20000,"unconfirmedSends":30000,"pendingApprovals":[]});
 
     });
 
@@ -351,7 +351,7 @@ describe('BitGoD', function() {
         result.token.should.equal(true);
         result.wallet.should.equal('2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX');
         result.keychain.should.equal(true);
-        result.balance.should.equal(718.73015758);
+        result.balance.should.equal(718.72985758);
       });
     });
 
@@ -367,7 +367,7 @@ describe('BitGoD', function() {
     it('getbalance', function() {
       return callRPC('getbalance')
       .then(function(result) {
-        result.should.equal(718.73015758);
+        result.should.equal(718.72985758);
       });
     });
 
@@ -382,7 +382,7 @@ describe('BitGoD', function() {
       return callRPC('listaccounts')
       .then(function(result) {
         result.should.have.property('');
-        result[''].should.equal(718.73015758);
+        result[''].should.equal(718.72985758);
       });
     });
   });

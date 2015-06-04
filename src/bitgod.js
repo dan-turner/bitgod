@@ -556,7 +556,7 @@ BitGoD.prototype.getBalance = function(minConfirms) {
         case 0:
           return self.toBTC(wallet.balance());
         case 1:
-          return self.toBTC(wallet.confirmedBalance());
+          return self.toBTC(wallet.confirmedBalance() - wallet.unconfirmedSends());
       }
     });
   }).then(function(balance) {
