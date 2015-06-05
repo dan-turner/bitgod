@@ -22,9 +22,12 @@ Running **bitgod -h** will produce usage information.
 $ bitgod -h
 usage: bitgod [-h] [-v] [-conf CONF] [-env ENV] [-rpcbind RPCBIND]
               [-rpcport RPCPORT] [-rpcuser RPCUSER] [-rpcpassword RPCPASSWORD]
+              [-rpcssl] [-rpcsslkey RPCSSLKEY] [-rpcsslcert RPCSSLCERT]
               [-proxyhost PROXYHOST] [-proxyport PROXYPORT]
               [-proxyuser PROXYUSER] [-proxypassword PROXYPASSWORD]
-              [-proxy PROXY] [-validate {loose,strict}]
+              [-proxyrpcssl] [-proxyrpcsslallowunauthorizedcerts]
+              [-proxy PROXY] [-masqueradeaccount MASQUERADEACCOUNT]
+              [-validate {loose,strict}]
 
 
 BitGoD
@@ -41,6 +44,10 @@ Optional arguments:
   -rpcuser RPCUSER      Username for RPC basic auth (default: none)
   -rpcpassword RPCPASSWORD
                         Password for RPC basic auth (default: none)
+  -rpcssl               Listen using JSON RPC with SSL
+  -rpcsslkey RPCSSLKEY  Path to SSL Key when listening with SSL is on
+  -rpcsslcert RPCSSLCERT
+                        Path to SSL Cert when listening with SSL is on
   -proxyhost PROXYHOST  Host for proxied bitcoind JSON-RPC (default:
                         localhost)
   -proxyport PROXYPORT  Port for proxied bitcoind JSON-RPC (default: 8332 or
@@ -49,8 +56,14 @@ Optional arguments:
                         bitcoinrpc)
   -proxypassword PROXYPASSWORD
                         Password for proxied bitcoind JSON-RPC
+  -proxyrpcssl          Use SSL when connecting to proxied bitcoind JSON-RPC
+  -proxyrpcsslallowunauthorizedcerts
+                        Allow SSL certs which are self-signed
   -proxy PROXY          Proxy to bitcoind JSON-RPC backend for non-wallet
                         commands
+  -masqueradeaccount MASQUERADEACCOUNT
+                        Ignore wallet account values and masquerade
+                        transactions as being in this account
   -validate {loose,strict}
                         Validate transaction data against local bitcoind
                         (requires -proxy)
@@ -108,7 +121,8 @@ the **walletpassphrase** command may be used subsequently to encrypt the keychai
 
 # Production
 
-As mentioned previously, BitGoD defaults to using BitGo's test environment, which uses testnet coins. In order to use the production BitGo environment, you can use the **-env** command line flag.  The ports used by BitGoD by default in prod and test are the same as those used by bitcoind, plus 1000.
+As mentioned previously, BitGoD defaults to using BitGo's test environment, which uses testnet coins. In order to use the production BitGo environment, you can use the **-env** command line flag.
+The ports used by BitGoD by default in prod and test are the same as those used by bitcoind, plus 1000.
 
 ```
 $ bitgod -env prod
@@ -207,3 +221,6 @@ $ ./bitgod -validate=loose -proxy=true -proxyhost=localhost -proxyport=18332 -pr
 BitGoD supports basic auth in the same manner as bitcoind. The user and password can be set with the **rpcuser** and **rpcpassword**
 config file options, or the corresponding command line flags.
 
+# SSL over JSON RPC
+
+If you are going to be running bitgod from a remote location to where calls will be made, we recommend the use of the **rpcssl** option to secure communications.  

@@ -81,6 +81,23 @@ BitGoD.prototype.getArgs = function(args) {
   });
 
   parser.addArgument(
+    ['-rpcssl'], {
+      action: 'storeConst',
+      constant: true,
+      help: 'Listen using JSON RPC with SSL'
+  });
+
+  parser.addArgument(
+    ['-rpcsslkey'], {
+      help: 'Path to SSL Key when listening with SSL is on'
+  });
+
+  parser.addArgument(
+    ['-rpcsslcert'], {
+      help: 'Path to SSL Cert when listening with SSL is on'
+  });
+
+  parser.addArgument(
     ['-proxyhost'], {
       help: 'Host for proxied bitcoind JSON-RPC (default: localhost)'
   });
@@ -98,6 +115,20 @@ BitGoD.prototype.getArgs = function(args) {
   parser.addArgument(
     ['-proxypassword'], {
       help: 'Password for proxied bitcoind JSON-RPC',
+  });
+
+  parser.addArgument(
+    ['-proxyrpcssl'], {
+      action: 'storeConst',
+      constant: true,
+      help: 'Use SSL when connecting to proxied bitcoind JSON-RPC',
+  });
+
+  parser.addArgument(
+    ['-proxyrpcsslallowunauthorizedcerts'], {
+      action: 'storeConst',
+      constant: true,
+      help: 'Allow SSL certs which are self-signed'
   });
 
   parser.addArgument(
@@ -146,7 +177,7 @@ BitGoD.prototype.setupProxy = function(config) {
 
   var proxyCommand = function(cmd) {
     self.server.expose(cmd, function(args, opt, callback) {
-      self.client.call(cmd, args, callback);
+      self.client.call(cmd, args, { https: !!config.proxyrpcssl, rejectUnauthorized: !config.proxyrpcsslallowunauthorizedcerts }, callback);
     });
   };
 
@@ -156,7 +187,9 @@ BitGoD.prototype.setupProxy = function(config) {
   }
 
   // Setup promis-ified method to call a method in bitcoind
-  this.callLocalMethod = Q.nbind(this.client.call, this.client);
+  this.callLocalMethod = function(cmd, args) {
+    return Q.nbind(this.client.call, this.client)(cmd, args, { https: !!config.proxyrpcssl, rejectUnauthorized: !config.proxyrpcsslallowunauthorizedcerts });
+  };
 
   // Verify we can actually connect
   return this.callLocalMethod('getinfo', [])
@@ -1224,13 +1257,23 @@ BitGoD.prototype.run = function(testArgString) {
   // Instantiate BitGo
   this.bitgo = new bitgo.BitGo({ env: config.env, userAgent: userAgent });
 
-  // Set up RPC server
-  this.server = rpc.Server.$create({
+  var serverOptions = {
     'websocket': true,
     'headers': {
       'Access-Control-Allow-Origin': '*',
     }
-  });
+  };
+
+  if (config.rpcssl) {
+    if (!config.rpcsslkey || !config.rpcsslcert) {
+      throw new Error('rpcssl specified without rpcsslkey and rpcsslcert');
+    }
+    serverOptions.https = { keyPath: config.rpcsslkey, certPath: config.rpcsslcert };
+    serverOptions.type = 'https';
+  }
+
+  // Set up RPC server
+  this.server = rpc.Server.$create(serverOptions);
 
   // Basic Auth
   if (!!config.rpcuser !== !!config.rpcpassword) {
