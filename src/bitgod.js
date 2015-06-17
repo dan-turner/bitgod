@@ -354,6 +354,14 @@ BitGoD.prototype.modifyError = function(err) {
   if (message.indexOf('must have at least one recipient') !== -1) {
     return this.error('Transaction amounts must be positive', -6);
   }
+  if (message.indexOf('exceeds daily limit') !== -1) {
+    var message = 'Exceeds daily policy limit';
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    var error = this.error(message, -10501);
+    return error;
+  }
   return err;
 };
 
@@ -1108,6 +1116,10 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     });
   })
   .then(function(result) {
+    if (result.status !== 'accepted') {
+      result.message = result.error;
+      throw result;
+    }
     return result.hash;
   })
   .catch(function(err) {
@@ -1144,6 +1156,10 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     });
   })
   .then(function(result) {
+    if (result.status !== 'accepted') {
+      result.message = result.error;
+      throw result;
+    }
     return result.hash;
   })
   .catch(function(err) {
