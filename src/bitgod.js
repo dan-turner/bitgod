@@ -575,8 +575,9 @@ BitGoD.prototype.handleGetRawChangeAddress = function() {
   return this.newAddress(1);
 };
 
-BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms) {
-  return this.handleListUnspent(minConfirms, maxConfirms)
+BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms, ignoreConfirmsForChange) {
+  var self = this;
+  return this.handleListUnspent(minConfirms, maxConfirms, undefined, ignoreConfirmsForChange)
   .then(function(unspents) {
     return self.toBTC(
       Math.round(unspents.reduce(function(prev, unspent) { return prev + unspent.satoshis; }, 0))
@@ -588,17 +589,12 @@ BitGoD.prototype.getBalance = function(minConfirms) {
   assert(typeof(minConfirms) !== 'undefined');
   var self = this;
   return Q().then(function() {
-    if (minConfirms > 1) {
-      return self.getBalanceFromUnspents(minConfirms);
+    if (minConfirms >= 1) {
+      return self.getBalanceFromUnspents(minConfirms, 9999999, true);
     }
     return self.getWallet()
     .then(function(wallet) {
-      switch (minConfirms) {
-        case 0:
-          return self.toBTC(wallet.balance());
-        case 1:
-          return self.toBTC(wallet.confirmedBalance() - wallet.unconfirmedSends());
-      }
+      return self.toBTC(wallet.balance());
     });
   }).then(function(balance) {
     return balance;
@@ -638,7 +634,7 @@ BitGoD.prototype.handleListAccounts = function(minConfirms) {
   });
 };
 
-BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresses) {
+BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresses, ignoreConfirmsForChanges) {
   this.ensureWallet();
   var self = this;
   minConfirms = this.getNumber(minConfirms, 1);
@@ -656,11 +652,13 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
         redeemScript: u.redeemScript,
         amount: self.toBTC(u.value),
         satoshis: u.value,  // non-standard field
-        confirmations: u.confirmations
+        confirmations: u.confirmations,
+        isChange: u.isChange
       };
     })
     .filter(function(u) {
-      return (u.confirmations >= minConfirms && u.confirmations <= maxConfirms);
+      return ((u.confirmations >= minConfirms && u.confirmations <= maxConfirms) ||
+              (ignoreConfirmsForChanges && u.isChange));
     });
   });
 };
