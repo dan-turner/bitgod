@@ -1085,7 +1085,23 @@ BitGoD.prototype.handleGetTransaction = function(txid) {
 BitGoD.prototype.handleSetTxFee = function(btcAmount) {
   this.ensureWallet();
   this.txFeeRate = Math.round(Number(btcAmount) * 1e8);
+  this.txConfirmTarget = undefined;
   return true;
+};
+
+BitGoD.prototype.handleSetTxConfirmTarget = function(numBlocks) {
+  this.ensureWallet();
+  this.txFeeRate = undefined;
+  this.txConfirmTarget = numBlocks;
+  return true;
+};
+
+BitGoD.prototype.handleEstimateFee = function(numBlocks) {
+  var self = this;
+  return this.bitgo.estimateFee({ numBlocks: numBlocks })
+  .then(function(result) {
+    return self.toBTC(result.feePerKb);
+  });
 };
 
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
@@ -1100,7 +1116,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
     return self.wallet.createTransaction({
       minConfirms: 1,
       recipients: recipients,
-      feeRate: self.txFeeRate
+      feeRate: self.txFeeRate,
+      feeTxConfirmTarget: self.txConfirmTarget
     });
   })
   .then(function(result) {
@@ -1140,7 +1157,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     return self.wallet.createTransaction({
       minConfirms: minConfirms,
       recipients: recipients,
-      feeRate: self.txFeeRate
+      feeRate: self.txFeeRate,
+      feeTxConfirmTarget: self.txConfirmTarget
     });
   })
   .then(function(result) {
@@ -1190,11 +1208,21 @@ BitGoD.prototype.handleGetInfo = function() {
   var self = this;
   var promises = [];
   var hasToken = !!this.bitgo._token;
+
+  // Show the effective tx confirm target, which defaults to 2 if txFeeRate is not set
+  var effectiveTxConfirmTarget = self.txConfirmTarget;
+  if (typeof(self.txConfirmTarget) === 'undefined' && typeof(self.txFeeRate) === 'undefined') {
+    effectiveTxConfirmTarget = 2;
+  }
+
   promises.push(self.client ? self.callLocalMethod('getinfo', []) : undefined);
   promises.push(hasToken ? self.getBalance(1) : undefined);
+  if (typeof(effectiveTxConfirmTarget) !== 'undefined') {
+    promises.push(self.handleEstimateFee(effectiveTxConfirmTarget));
+  }
 
   return Q.all(promises)
-  .spread(function(proxyInfo, balance) {
+  .spread(function(proxyInfo, balance, dynamicFee) {
     var info = {
       bitgod: true,
       version: BITGOD_VERSION,
@@ -1203,7 +1231,8 @@ BitGoD.prototype.handleGetInfo = function() {
       wallet: self.wallet ? self.wallet.id() : false,
       keychain: !!self.keychain,
       balance: balance,
-      paytxfee: typeof(self.txFeeRate) !== 'undefined' ? self.toBTC(self.txFeeRate) : 0.0001
+      paytxfee: typeof(self.txFeeRate) !== 'undefined' ? self.toBTC(self.txFeeRate) : dynamicFee,
+      txconfirmtarget: typeof(effectiveTxConfirmTarget) !== 'undefined' ? effectiveTxConfirmTarget : -1
     };
     if (proxyInfo) {
       // Strip irrelevant fields, since wallet functionality is not used
@@ -1348,6 +1377,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('validateaddress', this.handleValidateAddress);
   this.expose('walletpassphrase', this.handleWalletPassphrase, true);
   this.expose('walletlock', this.handleWalletLock);
+  this.expose('estimatefee', this.handleEstimateFee);
 
   // BitGo-specific methods
   this.expose('settoken', this.handleSetToken, true);
@@ -1357,6 +1387,7 @@ BitGoD.prototype.run = function(testArgString) {
   this.expose('unlock', this.handleUnlock);
   this.expose('lock', this.handleLock);
   this.expose('freezewallet', this.handleFreezeWallet);
+  this.expose('settxconfirmtarget', this.handleSetTxConfirmTarget);
 
   return Q().then(function() {
     // Proxy bitcoind
