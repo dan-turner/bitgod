@@ -991,7 +991,7 @@ describe('BitGoD', function() {
       return callRPC('settxfee', 138)
       .then(function(result) {
         result.should.equal(true);
-        return callRPC('getinfo')
+        return callRPC('getinfo');
       })
       .then(function(result) {
         result.bitgod.should.equal(true);
@@ -1023,7 +1023,7 @@ describe('BitGoD', function() {
 
         return callRPC('settxfee', 0.001);
       });
-    })
+    });
   });
 
   describe('Set tx confirm target', function() {
@@ -1050,7 +1050,7 @@ describe('BitGoD', function() {
       return callRPC('settxconfirmtarget', 4)
       .then(function (result) {
         result.should.equal(true);
-        return callRPC('getinfo')
+        return callRPC('getinfo');
       })
       .then(function (result) {
         result.bitgod.should.equal(true);
@@ -1163,6 +1163,29 @@ describe('BitGoD', function() {
       return callRPC('lock')
       .then(function(result) {
         result.should.equal('Locked');
+      });
+    });
+  });
+
+  describe('Help Call', function() {
+    it('help', function() {
+      return callRPC('help')
+      .then(function(result) {
+        _.forEach(bitgod.traditionalBitcoindMethods, function(value, key) {
+          _.contains(result['Traditional bitcoind calls'], key).should.eql(true);
+        });
+
+        _.forEach(bitgod.traditionalBitcoindMethods, function(value, key) {
+          _.contains(result['Calls specific to BitGo'], key).should.eql(false);
+        });
+
+        _.forEach(bitgod.bitgoSpecificMethods, function(value, key) {
+          _.contains(result['Calls specific to BitGo'], key).should.eql(true);
+        });
+
+        _.forEach(bitgod.bitgoSpecificMethods, function(value, key) {
+          _.contains(result['Traditional bitcoind calls'], key).should.eql(false);
+        });
       });
     });
   });

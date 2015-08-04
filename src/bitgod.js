@@ -1246,6 +1246,22 @@ BitGoD.prototype.handleNotImplemented = function() {
   throw this.error('Not implemented', -32601);
 };
 
+BitGoD.prototype.handleHelp = function() {
+  var helpJSON = {};
+  helpJSON['Calls specific to BitGo'] = [];
+  _.forEach(this.bitgoSpecificMethods, function(value, key) {
+    helpJSON['Calls specific to BitGo'].push(key);
+  });
+
+  helpJSON['Traditional bitcoind calls'] = [];
+  _.forEach(this.traditionalBitcoindMethods, function(value, key) {
+    helpJSON['Traditional bitcoind calls'].push(key);
+  });
+
+  return helpJSON;
+
+};
+
 /**
  * Expose an RPC method
  * @param   {String} name   the method name
@@ -1357,37 +1373,52 @@ BitGoD.prototype.run = function(testArgString) {
     self.expose(api, self.handleNotImplemented);
   });
 
-  // BitGo-handled bitcoind methods
-  this.expose('getnewaddress', this.handleGetNewAddress);
-  this.expose('getrawchangeaddress', this.handleGetRawChangeAddress);
-  this.expose('getbalance', this.handleGetBalance);
-  this.expose('getinfo', this.handleGetInfo);
-  this.expose('getwalletinfo', this.handleGetWalletInfo);
-  this.expose('getunconfirmedbalance', this.handleGetUnconfirmedBalance);
-  this.expose('gettransaction', this.handleGetTransaction);
-  this.expose('listaccounts', this.handleListAccounts);
-  this.expose('listunspent', this.handleListUnspent);
-  this.expose('sendtoaddress', this.handleSendToAddress);
-  this.expose('sendfrom', this.handleSendFrom);
-  this.expose('listtransactions', this.handleListTransactions);
-  this.expose('listsinceblock', this.handleListSinceBlock);
-  this.expose('getreceivedbyaddress', this.handleGetReceivedByAddress);
-  this.expose('sendmany', this.handleSendMany);
-  this.expose('settxfee', this.handleSetTxFee);
-  this.expose('validateaddress', this.handleValidateAddress);
-  this.expose('walletpassphrase', this.handleWalletPassphrase, true);
-  this.expose('walletlock', this.handleWalletLock);
-  this.expose('estimatefee', this.handleEstimateFee);
+  //BitGo-handled bitcoind methods
+  self.traditionalBitcoindMethods = {
+    'getnewaddress' : self.handleGetNewAddress,
+    'getrawchangeaddress' : self.handleGetRawChangeAddress,
+    'getbalance' : self.handleGetBalance,
+    'getinfo' : self.handleGetInfo,
+    'getwalletinfo' : self.handleGetWalletInfo,
+    'getunconfirmedbalance' : self.handleGetUnconfirmedBalance,
+    'gettransaction' : self.handleGetTransaction,
+    'listaccounts' : self.handleListAccounts,
+    'listunspent' : self.handleListUnspent,
+    'sendtoaddress' : self.handleSendToAddress,
+    'sendfrom' : self.handleSendFrom,
+    'listtransactions' : self.handleListTransactions,
+    'listsinceblock' : self.handleListSinceBlock,
+    'getreceivedbyaddress' : self.handleGetReceivedByAddress,
+    'sendmany' : self.handleSendMany,
+    'settxfee' : self.handleSetTxFee,
+    'validateaddress' : self.handleValidateAddress,
+    'walletpassphrase' : self.handleWalletPassphrase,
+    'walletlock' : self.handleWalletLock,
+    'estimatefee' : self.handleEstimateFee,
+    'help' : self.handleHelp
+  };
 
   // BitGo-specific methods
-  this.expose('settoken', this.handleSetToken, true);
-  this.expose('setkeychain', this.handleSetKeychain, true);
-  this.expose('setwallet', this.handleSetWallet);
-  this.expose('session', this.handleSession);
-  this.expose('unlock', this.handleUnlock);
-  this.expose('lock', this.handleLock);
-  this.expose('freezewallet', this.handleFreezeWallet);
-  this.expose('settxconfirmtarget', this.handleSetTxConfirmTarget);
+  self.bitgoSpecificMethods = {
+    'settoken' : self.handleSetToken,
+    'setkeychain' : self.handleSetKeychain,
+    'setwallet' : self.handleSetWallet,
+    'session' : self.handleSession,
+    'unlock' : self.handleUnlock,
+    'lock' : self.handleLock,
+    'freezewallet' : self.handleFreezeWallet,
+    'settxconfirmtarget' : self.handleSetTxConfirmTarget
+  };
+
+
+  self.noLogArgsMethods = ['walletpassphrase', 'settoken', 'setkeychain'];
+
+  var exposeMethods = function(value, key) {
+    self.expose(key, value, _.contains(self.noLogArgsMethods, key));
+  };
+
+  _.forEach(self.traditionalBitcoindMethods, exposeMethods);
+  _.forEach(self.bitgoSpecificMethods, exposeMethods);
 
   return Q().then(function() {
     // Proxy bitcoind
