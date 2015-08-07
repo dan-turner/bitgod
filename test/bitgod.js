@@ -15,6 +15,43 @@ var bitcoin = require('bitcoinjs-lib');
 
 var BitGoD = require('../src/bitgod');
 
+
+// Hacky helper function for use in getaddressesbyaccount paging test, only works for pos numbers < 1000
+// Original address string was 2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXiHr8
+
+// Creates an array of a specified number of addresses
+var createUniqueFakeAddressList = function(numAddrsToGenerate) {
+  assert(numAddrsToGenerate >= 0);
+  assert(numAddrsToGenerate < 1000);
+  var outputAddrList = [];
+  var generateUniqueAddr = function(seed) {
+    // pad seed value so we always have addr with 35 characters
+    if (seed < 10)
+      { seed = '00' + seed.toString();
+    }
+    else if (seed < 100)
+      { seed = '0' + seed.toString();
+    }
+    else {
+      seed = seed.toString();
+    }
+
+    return "2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXi" + seed;
+  };
+
+
+  for (var i = 1; i < numAddrsToGenerate + 1; i++) {
+    var fakeAddr = {
+      "chain": 0,
+      "index": i,
+      "path": "/0/" + i,
+      "address": generateUniqueAddr(i)
+    };
+    outputAddrList.push(fakeAddr);
+  }
+  return outputAddrList;
+};
+
 describe('BitGoD', function() {
 
   var bitgod;
@@ -119,7 +156,6 @@ describe('BitGoD', function() {
         result.scriptPubKey.should.equal('a9147e18b65f2ac82c6c4407726e9201d0281068c1b687');
       });
     });
-
   });
 
   describe('No auth', function(done) {
@@ -127,6 +163,14 @@ describe('BitGoD', function() {
     it('getbalance', function() {
       return callRPC('getbalance')
       .then(expectError, function(err) {
+        err.code.should.equal(-32603);
+        err.message.should.match(/Not connected to BitGo wallet/);
+      });
+    });
+
+    it('getaddressesbyaccount before setting wallet', function() {
+      return callRPC('getaddressesbyaccount')
+        .then(expectError, function(err) {
         err.code.should.equal(-32603);
         err.message.should.match(/Not connected to BitGo wallet/);
       });
@@ -1163,6 +1207,37 @@ describe('BitGoD', function() {
       return callRPC('lock')
       .then(function(result) {
         result.should.equal('Locked');
+      });
+    });
+  });
+
+  describe('Get Wallet Addresses', function() {
+
+    before(function() {
+      nock.cleanAll();
+    });
+
+    it('getaddressesbyaccount with no paging', function() {
+      nock('https://test.bitgo.com:443')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/addresses')
+        .reply(200, {"addresses":[{"chain":0,"index":0,"path":"/0/0","address":"2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXiHr9"},{"chain":0,"index":1,"path":"/0/1","address":"2NAvfxq4AmDE89eJbAjNK2gXu1kfFNu99Bo"}],"start":0,"count":2,"total":2,"hasMore":false});
+      return callRPC('getaddressesbyaccount')
+      .then(function(result) {
+        result[0].should.eql('2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXiHr9');
+        result[1].should.eql('2NAvfxq4AmDE89eJbAjNK2gXu1kfFNu99Bo');
+      });
+    });
+
+    it('getaddressesbyaccount with paging', function() {
+      nock('https://test.bitgo.com:443')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/addresses')
+        .reply(200, {"addresses": createUniqueFakeAddressList(500),"start":0,"count":500,"total":502,"hasMore":true});
+      nock('https://test.bitgo.com:443')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/addresses?skip=500')
+        .reply(200, {"addresses":[{"chain":0,"index":0,"path":"/0/0","address":"2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXiHr8"}, {"chain":0,"index":1,"path":"/0/1","address":"2NG3eraWTiDSTGYWX4Xc6qAH1rwEHwXiHr9"}],"start":501,"count":2,"total":502,"hasMore":false});
+      return callRPC('getaddressesbyaccount')
+      .then(function(result) {
+        result.length.should.equal(502);
       });
     });
   });

@@ -366,7 +366,7 @@ BitGoD.prototype.modifyError = function(err) {
 };
 
 BitGoD.prototype.getWallet = function(id) {
-  id = id || this.wallet.id();
+  id = id || (this.wallet && this.wallet.id());
   return this.bitgo.wallets().get({id: id});
 };
 
@@ -569,6 +569,27 @@ BitGoD.prototype.newAddress = function(chain) {
 
 BitGoD.prototype.handleGetNewAddress = function() {
   return this.newAddress(0);
+};
+
+
+BitGoD.prototype.handleGetAddressesByAccount = function(account) {
+  this.ensureWallet();
+  this.ensureBlankAccount(account);
+
+  var self = this;
+  var listOfAddressLists = [];
+  var getAddressesByAccountInternal = function (skip) {
+    return self.wallet.addresses({skip: skip})
+    .then(function (addrsPage) {
+      listOfAddressLists = listOfAddressLists.concat(_.pluck(addrsPage.addresses, 'address'));
+      if (addrsPage.hasMore) {
+        return getAddressesByAccountInternal(skip + addrsPage.count);
+      } else {
+        return _.flatten(listOfAddressLists);
+      }
+    });
+  };
+  return getAddressesByAccountInternal(0);
 };
 
 BitGoD.prototype.handleGetRawChangeAddress = function() {
@@ -1367,7 +1388,7 @@ BitGoD.prototype.run = function(testArgString) {
   });
 
   // Just not implemented yet
-  var notImplemented = 'encryptwallet getaddressesbyaccount getreceivedbyaccount';
+  var notImplemented = 'encryptwallet getreceivedbyaccount';
   notImplemented.split(' ').forEach(function(api) {
     self.notImplemented.push(api);
     self.expose(api, self.handleNotImplemented);
@@ -1395,6 +1416,7 @@ BitGoD.prototype.run = function(testArgString) {
     'walletpassphrase' : self.handleWalletPassphrase,
     'walletlock' : self.handleWalletLock,
     'estimatefee' : self.handleEstimateFee,
+    'getaddressesbyaccount' : self.handleGetAddressesByAccount,
     'help' : self.handleHelp
   };
 
@@ -1419,6 +1441,7 @@ BitGoD.prototype.run = function(testArgString) {
 
   _.forEach(self.traditionalBitcoindMethods, exposeMethods);
   _.forEach(self.bitgoSpecificMethods, exposeMethods);
+
 
   return Q().then(function() {
     // Proxy bitcoind
