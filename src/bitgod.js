@@ -581,11 +581,11 @@ BitGoD.prototype.handleGetAddressesByAccount = function(account) {
   var getAddressesByAccountInternal = function (skip) {
     return self.wallet.addresses({skip: skip})
     .then(function (addrsPage) {
-      listOfAddressLists = listOfAddressLists.concat(_.pluck(addrsPage.addresses, 'address'));
+      listOfAddressLists.push(addrsPage.addresses);
       if (addrsPage.hasMore) {
         return getAddressesByAccountInternal(skip + addrsPage.count);
       } else {
-        return _.flatten(listOfAddressLists);
+        return _(listOfAddressLists).flatten().pluck('address').value();
       }
     });
   };
