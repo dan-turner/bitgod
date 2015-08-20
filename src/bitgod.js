@@ -912,6 +912,14 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
   });
 };
 
+/**
+ * Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'
+ * @param account The user's HD wallet
+ * @param count The number of transactions to return
+ * @param from The number of transactions to skip
+ * @param minHeight Only return transactions from a block with minHeight and above
+ * @returns {*}
+ */
 BitGoD.prototype.handleListTransactions = function(account, count, from, minHeight) {
   this.ensureWallet();
   var self = this;
