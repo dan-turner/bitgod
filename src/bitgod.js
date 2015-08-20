@@ -944,7 +944,9 @@ BitGoD.prototype.handleListTransactions = function(account, count, from, minHeig
         return (outputList.length < count + from);
       });
 
-      if (outputList.length >= count + from || res.count <= 0) {
+      if (outputList.length >= count + from || // we have enough transactions collected in the output list
+          (res.start + res.count) >= res.total || // we have received all of the transactions available on the server
+          res.count <= 0) { // there are no more results
         return;
       } else {
         return getTransactionsInternal(skip + res.count);
