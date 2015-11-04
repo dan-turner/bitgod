@@ -1179,9 +1179,18 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
 
-  Object.keys(recipients).forEach(function(destinationAddress) {
-    recipients[destinationAddress] = Math.round(Number(recipients[destinationAddress]) * 1e8);
-  });
+  if (recipients instanceof Array) {
+    recipients.forEach(function(recipient) {
+      if (!recipient['address'] || !recipient['amount']) {
+        throw self.error('Incorrect sendmany input - address ' + recipient['address'] + ', amount ' + recipient['amount'], -1);
+      }
+      recipient['amount'] = Math.round(Number(recipient['amount']) * 1e8);
+    });
+  } else {
+    Object.keys(recipients).forEach(function (destinationAddress) {
+      recipients[destinationAddress] = Math.round(Number(recipients[destinationAddress]) * 1e8);
+    });
+  }
 
   return this.getWallet()
   .then(function(wallet) {

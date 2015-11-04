@@ -981,7 +981,7 @@ describe('BitGoD', function() {
       });
     });
 
-    it('sendmany success', function() {
+    it('sendmany success (recipients dictionary)', function() {
       nock('https://test.bitgo.com:443')
         .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000')
         .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
@@ -995,6 +995,30 @@ describe('BitGoD', function() {
         .reply(200, {"transaction":"0000","transactionHash":"31b74078116169c64a304bbf593cbe68027ab12a8b274c53a5c367cda3f8898f"});
 
       return callRPC('sendmany', "", recipients)
+      .then(function(result) {
+        result.should.equal('31b74078116169c64a304bbf593cbe68027ab12a8b274c53a5c367cda3f8898f');
+      });
+    });
+
+    it('sendmany success (recipients array)', function() {
+      var recipientsArray = [
+        { address: '2N4LzyvT64t9HXHaNXLVMugN4zyAfo9QQya', amount: 1},
+        { address: '2N4kx6jh2zTtS681zaKA9t2Po91k2F84yfA', amount: 2}
+      ];
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000')
+      .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
+
+      nock('https://test.bitgo.com:443')
+      .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
+      .reply(200, {"address":"2N5p9bXC4poJEb5jNcbu2BxuNeSn2qbEtpo","chain":1,"index":82,"path":"/1/82","redeemScript":"52210389f7e8e63adfcaa99b11523cbbd9df20ba6ff1a1ff8a2a68e27cb3e8bf21c5172103025ca7a7efedf5d3b544d7f87ee86cb0e1287dea9b5f2d98696d6c555a2dc8a021032d488227abffbd9a10a771bdc8ac469cc6f136a054b83dc826a3e252656cbc0653ae"});
+
+      nock('https://test.bitgo.com:443')
+      .post('/api/v1/tx/send')
+      .reply(200, {"transaction":"0000","transactionHash":"31b74078116169c64a304bbf593cbe68027ab12a8b274c53a5c367cda3f8898f"});
+
+      return callRPC('sendmany', "", recipientsArray)
       .then(function(result) {
         result.should.equal('31b74078116169c64a304bbf593cbe68027ab12a8b274c53a5c367cda3f8898f');
       });
