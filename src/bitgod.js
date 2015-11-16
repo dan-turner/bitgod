@@ -1261,6 +1261,13 @@ BitGoD.prototype.handleGetInfo = function() {
     promises.push(self.handleEstimateFee(effectiveTxConfirmTarget));
   }
 
+  var unlockedUntil = 0;
+  if (self.passphrase && self.passPhraseExpires > new Date()) {
+    unlockedUntil = Math.floor(self.passPhraseExpires.getTime() / 1000);
+  } else if (self.keychain && self.keychain.xprv) {
+    unlockedUntil = 9999999999;
+  }
+
   return Q.all(promises)
   .spread(function(proxyInfo, balance, dynamicFee) {
     var info = {
@@ -1272,7 +1279,8 @@ BitGoD.prototype.handleGetInfo = function() {
       keychain: !!self.keychain,
       balance: balance,
       paytxfee: typeof(self.txFeeRate) !== 'undefined' ? self.toBTC(self.txFeeRate) : dynamicFee,
-      txconfirmtarget: typeof(effectiveTxConfirmTarget) !== 'undefined' ? effectiveTxConfirmTarget : -1
+      txconfirmtarget: typeof(effectiveTxConfirmTarget) !== 'undefined' ? effectiveTxConfirmTarget : -1,
+      unlocked_until: unlockedUntil
     };
     if (proxyInfo) {
       // Strip irrelevant fields, since wallet functionality is not used

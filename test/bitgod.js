@@ -1060,6 +1060,10 @@ describe('BitGoD', function() {
         result.token.should.equal(true);
         result.paytxfee.should.equal(138);
         result.txconfirmtarget.should.equal(-1);
+
+        // previously unlocked for 300 seconds
+        result.unlocked_until.should.be.greaterThan(Math.round(new Date().getTime() / 1000) - 10);
+        result.unlocked_until.should.be.lessThan(Math.round(new Date().getTime() / 1000) + 300);
       });
     });
 
