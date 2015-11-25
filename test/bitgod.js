@@ -432,12 +432,44 @@ describe('BitGoD', function() {
       nock('https://test.bitgo.com:443')
       .persist()
       .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
-      .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":71873015758,"balance":81873015758,"unconfirmedReceives":20000,"unconfirmedSends":30000,"pendingApprovals":[]});
+      .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","canSendInstant":true,"label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":71873015758,"balance":81873015758,"unconfirmedReceives":20000,"unconfirmedSends":30000,"pendingApprovals":[]});
       return callRPC('getwalletinfo')
       .then(function(result) {
         result.walletversion.should.equal('bitgo');
         result.balance.should.equal(718.73015758);
+        result.cansendinstant.should.equal(true);
         result.unconfirmedbalance.should.equal(100);
+      });
+    });
+
+    it('getinstantguarantee', function() {
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/instant/564ea1fa95f4344c6db00773d1277160')
+      .reply(200, {"id":"564ea1fa95f4344c6db00773d1277160","transactionId":"8ba08ef2a745246f309ec4eaff5d7652c4fc01e61eebd9aabc1c58996355acd7","normalizedHash":"62f76eb48d60a1c46cb74ce42063bd9c0816ca5e17877738a824525c9794ceaf","createTime":"2015-11-20T04:30:49.894Z","amount":600000,"guarantee":"BitGo Inc. guarantees the transaction with hash 8ba08ef2a745246f309ec4eaff5d7652c4fc01e61eebd9aabc1c58996355acd7 or normalized hash 62f76eb48d60a1c46cb74ce42063bd9c0816ca5e17877738a824525c9794ceaf for the USD value of 0.00600000 BTC at Fri Nov 20 2015 04:30:49 GMT+0000 (UTC) until confirmed to a depth of 6 confirms.","signature":"1c2ea42ab4b9afdc069441401a1db32334b08aaca6e1a57302540b8c7e0b9da0c933cda2140aa29d73cd8de63418e12222d5e9ff43151ed9df2f27d57854aeb392","state":"closed","confirmedHeight":606424,"confirmedBlock":"00000000006950652a3bf9d3de535a480257d4ada892924f9b09f0d817c18fec","closedByBlock":"00000000007c6465483ab329af80e7b08569c63b5d70d9d7c8fc323755816bc4"}, { 'access-control-allow-headers': 'content-type, authorization',
+        'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'access-control-allow-origin': '*',
+        'cache-control': 'private, no-cache, no-store, must-revalidate',
+        'content-type': 'application/json; charset=utf-8',
+        date: 'Sun, 29 Nov 2015 21:55:42 GMT',
+        expires: '-1',
+        pragma: 'no-cache',
+        server: 'nginx/1.6.2',
+        'set-cookie':
+        [ 'bgAbTest=eyJjaWQiOiJlNDlmN2U3MC1iZjU2LTRiMGUtODk1ZS04ZGM3MjAwNzlhNTAifQ==; path=/',
+          'bgAbTest.sig=iOc4OWfRbYrSb__QKveyL_FDSUI; path=/' ],
+        'strict-transport-security': 'max-age=31536000',
+        vary: 'Accept-Encoding',
+        'x-content-type-options': 'nosniff',
+        'x-frame-options': 'deny',
+        'x-xss-protection': '1; mode=block',
+        'content-length': '950',
+        connection: 'Close' });
+      return callRPC('getinstantguarantee', '564ea1fa95f4344c6db00773d1277160')
+      .then(function(result) {
+        result.amount.should.equal(0.006);
+        result.normalizedHash.should.equal('62f76eb48d60a1c46cb74ce42063bd9c0816ca5e17877738a824525c9794ceaf');
+        result.signature.should.equal('1c2ea42ab4b9afdc069441401a1db32334b08aaca6e1a57302540b8c7e0b9da0c933cda2140aa29d73cd8de63418e12222d5e9ff43151ed9df2f27d57854aeb392');
+        result.guarantee.should.equal('BitGo Inc. guarantees the transaction with hash 8ba08ef2a745246f309ec4eaff5d7652c4fc01e61eebd9aabc1c58996355acd7 or normalized hash 62f76eb48d60a1c46cb74ce42063bd9c0816ca5e17877738a824525c9794ceaf for the USD value of 0.00600000 BTC at Fri Nov 20 2015 04:30:49 GMT+0000 (UTC) until confirmed to a depth of 6 confirms.');
       });
     });
 
@@ -523,7 +555,7 @@ describe('BitGoD', function() {
       nock('https://test.bitgo.com:443')
         .persist()
         .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents')
-        .reply(200, {"unspents":[{"confirmations":1,"address":"2N2XYoQKXQGUXJUG7AvjA1LAGWzf65RcBHG","tx_hash":"fd426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":0,"value":10000000000,"script":"a91465cf7dc1dc237ad59225140773994a747674e42387","redeemScript":"5221021971b4d7c5d919e2655134ac12daa755cd1d6a14996c5b272de24178f3649e952103f8bb35d209e20c1f64f9f2c5686efbcb212a504d3c5ee65e9623187c03009a9321036d051911592ef2a7a72bd53c767d1e57f260c7627a8115d6204d9f33c7dbcc7b53ae","chainPath":"/0/27"},{"confirmations":0,"address":"2N8BJoXnpt9ByzxbxZY5ePrps1vbSmLG6M9","tx_hash":"ed426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":1,"value":71873005758,"script":"a914a3cc3df0570bc12afa1fc2202bb6d6e366c1086787","redeemScript":"522102907b7674fad76d9fcfd95914f6ef5bfbb4accd1c27d050451fffd47eca9748b621027b5afd6ad827932a3a541d44e36d596d46cd23f309625739b2a9563f96fae6762102d990d4984d7680242680bc86c1c890fb6a027f30057e5e0f0eeeaed5f6f90bd753ae","chainPath":"/1/72"}],"pendingTransactions":false});
+        .reply(200, {"unspents":[{"confirmations":1,"address":"2N2XYoQKXQGUXJUG7AvjA1LAGWzf65RcBHG",instant: true,"tx_hash":"fd426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":0,"value":10000000000,"script":"a91465cf7dc1dc237ad59225140773994a747674e42387","redeemScript":"5221021971b4d7c5d919e2655134ac12daa755cd1d6a14996c5b272de24178f3649e952103f8bb35d209e20c1f64f9f2c5686efbcb212a504d3c5ee65e9623187c03009a9321036d051911592ef2a7a72bd53c767d1e57f260c7627a8115d6204d9f33c7dbcc7b53ae","chainPath":"/0/27"},{"confirmations":0,"address":"2N8BJoXnpt9ByzxbxZY5ePrps1vbSmLG6M9",instant: false,"tx_hash":"ed426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":1,"value":71873005758,"script":"a914a3cc3df0570bc12afa1fc2202bb6d6e366c1086787","redeemScript":"522102907b7674fad76d9fcfd95914f6ef5bfbb4accd1c27d050451fffd47eca9748b621027b5afd6ad827932a3a541d44e36d596d46cd23f309625739b2a9563f96fae6762102d990d4984d7680242680bc86c1c890fb6a027f30057e5e0f0eeeaed5f6f90bd753ae","chainPath":"/1/72"}],"pendingTransactions":false});
     });
 
     it('listunspent', function() {
@@ -533,6 +565,7 @@ describe('BitGoD', function() {
         var u = result[0];
         u.txid.should.equal('fd426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae');
         u.vout.should.equal(0);
+        u.instant.should.eql(true);
         u.address.should.equal('2N2XYoQKXQGUXJUG7AvjA1LAGWzf65RcBHG');
         u.account.should.equal('');
         u.scriptPubKey.should.equal('a91465cf7dc1dc237ad59225140773994a747674e42387');
@@ -556,6 +589,7 @@ describe('BitGoD', function() {
         result.should.have.length(1);
         var u = result[0];
         u.txid.should.equal('ed426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae');
+        u.instant.should.eql(false);
       });
     });
 
@@ -766,6 +800,11 @@ describe('BitGoD', function() {
 
     before(function() {
       nock.cleanAll();
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/notfound')
+      .reply(404, {"error":"transaction not found on this wallet"});
+
       nock('https://test.bitgo.com:443')
       .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/c1cdd3653d6e7e2ce43e88d3a44f95d550f1fa800c25139d60125c668e563dfe')
       .reply(200, ["1f8b0800000000000203ad935d6f5b370c86ffcbb976078a22f5e1bb65dd52aceb902d03ba66d8052591b69bc44efdd1b428f2dfcbd3a4e8b6eb090738c712f9f8e52bf2d3b419d372eaa18f1113c791342b76a5a8a58c284456793083059302d09143ac234140ee2915e51487e9b498861cd54908819f013e0be58f004baacb80df01c09547987a8033e6b59876a7e3dde97898967f7d9adefb8f69e99bd2fbeeb43dce9c5f319c1df9eaed6f2bd6d73fff727e5aaddee073bb7ef1f1c3fae2a5c8eacc91efe5e6e4d0101fb10f8bafacf06fd6f3f2e77e75f9eafc777c798b173b79d77fbabcbb5cf39bfa63effbfdfdc76fac92f051e0e6f06ab3f58de3fea40f7f2f26dd1ef71b7d14fc3fe8fc27e28ccff1ededbbcbc3fd75fe81305f6d5e9cee4fdf1fc3f9c5815febb97c433cc3f0c470497db7b5cdfe568e9bddd685312fa63bdd8ecd76352d4d6e0eba98d6fac1ff02c2a3ed10940d861204a38a896ae2aedca3dfbc24ff6e201c39110ff0f39c598d2bc614a40a6473023e826cd898df9423100122a408a59b884554cb586a684e4bc295aa7932a79c7aadd625b2590ec34f2b71699453c25c6646464fa6e2611462eb8503428d7daeb92669adfb2601341b1db2e4d6cc0b08aa06da0c9b42a0e27ad8595e71cf025e531709d65a224bd56a217f2008d030938421c6a1ae331946514ba8c18b0b23bb51b3a2d8874a6c5c214a66502de0568dd0ba4b0f146370114544d83468ac0c236a9792731d82e28a7aaa3cebf1c8514c42072f66be07746b34923b6e86094d0d59213214322ea571034c3088b516df485f182e2d153463d511038dd854a80f40f755b955a8d547971ab8b2227de40ed84c69845c03aa33104b278b5c889a7673eba56a6f25d55247e48183dd3b1065e69c912aa12322d76e3ef77ea93c1bf5b400092a8ea7aef8d262596a208f0ca53745d261b517f40eb268dd4df6b3d806958cadb94f0a25fba5fd277f48d0c25843d53cdcc9ea6d386a16b7888d8ae4d8dc5af1fcaf793e23ed66d7afd77258cf2dffb48c53e7114d737656556c442a7e30c0bb30a91b5a804af3aba328a3e464dc460ad33c3b9bd5da27346224e087cf008362ad2c050000","ca81eebe6173470f1de992d03ec508831fb18f61741902af38ba68c5ff2e8c98b60efc0a1a1a174ac8681d0a145296f74658aa7580c6c6bc94d231cba203231370ad0347635271e13e1fa34a19533d69d05def3674cbacb65c372bc97c35af2d211acc4ad5f607306a573a7b49ae7d6b36eab93ca95566a49c26f561b956eda5799a8c66271849d8304c3f86d1a5c5febfb9113433637c3410249587e60691dc49e49080bb117ccf95863e169c6522c20e43b783c845c0c020d62b1cd4198c548f90229745842fc1e836c7fd34d9a941e5b1a2e46eb18ef96d9ac4f0385d97568fe5eb5eef7957f1db6e745bab540ea5dd6cdbffb61d37f3a69db2e6ec6e559fddbb6d9efaf40423adc499d8ff4956847f6245972df71c4392bf8fa1a717d186588e8e515762ab05a45d29148623955c04c31d555c496a0872562049b543af1842ec0f8662f04807c28d501180e35138c1503010a91503a8744026586abc01c362e48898951e3294351c823e3bcb10d645c28ae8e5b8a735219f3bede18f0d7be5da7e3c1d6c862c5f4c784c461b7cb79b8def1296dff4b6ed16bf7e56266f289353e5f9375ce9dd89a660b359cfef4bbc1fb1ba1f6d5c65361698c1437c52b2d05aa36332fd1c36e9597b9b4f87244fd29693cdb0bd0b497bfed8e72dbd9f2662bd29756f86fe84ee9f04ff8b57f51a6e8dc9fbe0669146ecad608663267c448ed8688817d8c274e709c6d86b167c90ca092a1c974c6378025ec24d857c8e6b607fcc0bc48313484786ccf11f0b05a98c6bb05d2ddd1167182c60ce50f0f39e6304f1df69cca2b7f4a7702380fb923efb9173797b7abca19b5abddfa5a277e8de34e6ccd27abf31ac56fb83ebe63ecdf3eda93f424ca5e89f4b6be4bc455eb6e0b310bdb3cb621c893afe45a090331e080a8e78e51872de69ab88e416a9a03ce790d11d78928a31e2a7a37e01d17397853c068321963079462610f8ab877de430450285d2100e64226a348b0089935887c024a6c7706ca97beadf672052450610891710c10e48f9b916493e6291f3c9244d3acb75a79c947a9d45354fbc6bcc77f5b5cefc7dda5c0e4fc6484829b079f493f821e72de8827a5e79d8065a5532bbe9b5bea9c3a862b269dd37d24df3710d5c8dafe9f40461fa97f8b1f7e107add11a8a0d65cc19f033c7b4571a68210e51c15934ce181b20e7bbe8558846702208fa9387f1e75981dac021e2f9a0c0111d8cef5140f3c5282012e19d1a2bb8c25c05860d487a6db48f029a33779246f67efc28e64cbfed61ab764c5a713315a65ddf55a89e75ef7832da2f1ffdf5a1b31accc3e99f4a8ad29ffad7473a3d39f6977f2ae0fda1fe8a9e4b567a72fb21e9cf74b7563e6caaa95e09b9da841b9dc755b26f87bd20a27c021fa47ecd18d7973f005ffefe1380cf3f85f376ab5a6d35b3dbd2808d5a215bf553711836e6ade5bcd4ae6575f1b6c4ae520bd36ea058d1fa38bb49134ef975af761b9687b83c7437bd7312ff8ee710aa5867263de24b8e053dad080388d932335f61c214df7f05a50201f94b190000"], { 'access-control-allow-headers': 'content-type, authorization',
@@ -783,8 +822,14 @@ describe('BitGoD', function() {
         'transfer-encoding': 'chunked'});
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/notfound')
-      .reply(404, {"error":"transaction not found on this wallet"});
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a')
+      .reply(200, '{"id":"44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a","date":"2014-11-12T22:44:43.000Z","fee":10000,"inputs":[{"previousHash":"a2d161ade31a49fe8a205f77bd70f1bca1e85719d945f28c488d7e7bbd431080","previousOutputIndex":1}],"outputs":[{"vout":0,"account":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","value":100000000000,"isMine":true,"chain":0,"chainIndex":0},{"vout":1,"account":"miTkUwNRBYinuUALY1EJEiGH4tenvsUkGZ","value":721187660000}],"entries":[{"account":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","value":100000000000},{"account":"miTkUwNRBYinuUALY1EJEiGH4tenvsUkGZ","value":-100000010000}],"confirmations":300032,"pending":false,"instant":true,"blockhash":"00000000ef154b1503d84244be056807261d4b0bf1a4d03383659133de2668f1","height":307993,"hex":"0100000001801043bd7b7e8d488cf245d91957e8a1bcf170bd775f208afe491ae3ad61d1a2010000008b483045022045b1583fa9344bd94e492e63f66b4e3974e9e7f65aebd0e10b5795c872174733022100da3fd915ba389456b0df2cd2ec5d0e15ed149bf578c2a8240b4d6a54e8291997014104122d779d21ea2c6ef55edd219eb71f659c0d107e27a5aba7075c1ee096b05afc4800ed7359b484fddc586663a7d911abeaefb3a3d1b7fcfd297ef3f4e9fed267ffffffff0200e876481700000017a914b238b35dd6399962fbc746f467774c2cf4966a5d87e06022eaa70000001976a914204d44de7cff19e4c0464b92fd2e9ebd72596a2b88ac00000000"}', { 'access-control-allow-origin': '*',
+        allow: 'POST',
+        'access-control-allow-headers': 'Content-Type',
+        'content-length': '41',
+        'content-type': 'application/json',
+        date: 'Mon, 30 Nov 2015 21:55:36 GMT',
+        connection: 'close' });
     });
 
     it('tx does not exist', function() {
@@ -806,6 +851,16 @@ describe('BitGoD', function() {
       return callRPC('gettransaction', 'c1cdd3653d6e7e2ce43e88d3a44f95d550f1fa800c25139d60125c668e563dfe')
       .then(function(result) {
         result.should.eql(results.tx2);
+      });
+    });
+
+    it('instant txs', function() {
+      return callRPC('gettransaction', '44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a')
+      .then(function(result) {
+        result.txid.should.eql('44954268b32d386733f64d457bc933bf323f31f3596b90becc718a5b7cbfce8a');
+        result.amount.should.eql(100000000000);
+        result.confirmations.should.eql(300032);
+        result.instant.should.eql(true);
       });
     });
   });
