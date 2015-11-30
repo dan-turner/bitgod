@@ -674,7 +674,8 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
         amount: self.toBTC(u.value),
         satoshis: u.value,  // non-standard field
         confirmations: u.confirmations,
-        isChange: u.isChange
+        isChange: u.isChange,
+        instant: u.instant
       };
     })
     .filter(function(u) {
@@ -724,6 +725,8 @@ BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList) {
       txid: tx.id,
       time: new Date(tx.date).getTime() / 1000,
       timereceived: new Date(tx.date).getTime() / 1000,
+      instant: tx.instant,
+      instantId: tx.instantId,
 
       // Non-standard fields (could strip after validation)
       height: tx.height,
@@ -1092,7 +1095,9 @@ BitGoD.prototype.handleGetTransaction = function(txid) {
       txid: tx.id,
       time: new Date(tx.date).getTime() / 1000,
       timereceived: new Date(tx.date).getTime() / 1000,
-      hex: tx.hex
+      hex: tx.hex,
+      instant: tx.instant,
+      instantId: tx.instantId
     };
 
     result.details = [];
@@ -1132,6 +1137,15 @@ BitGoD.prototype.handleEstimateFee = function(numBlocks) {
   return this.bitgo.estimateFee({ numBlocks: numBlocks })
   .then(function(result) {
     return self.toBTC(result.feePerKb);
+  });
+};
+
+BitGoD.prototype.handleGetInstantGuarantee = function(id) {
+  var self = this;
+  return this.bitgo.instantGuarantee({ id: id })
+  .then(function(result) {
+    result.amount = self.toBTC(result.amount);
+    return result;
   });
 };
 
@@ -1239,6 +1253,7 @@ BitGoD.prototype.handleGetWalletInfo = function() {
       walletversion: 'bitgo',
       balance: self.toBTC(wallet.confirmedBalance()),
       unconfirmedbalance: self.toBTC(wallet.balance() - wallet.confirmedBalance()),
+      cansendinstant: wallet.canSendInstant()
       //unlocked_until: wallet.wallet.unlock
     };
   });
@@ -1456,9 +1471,9 @@ BitGoD.prototype.run = function(testArgString) {
     'unlock' : self.handleUnlock,
     'lock' : self.handleLock,
     'freezewallet' : self.handleFreezeWallet,
-    'settxconfirmtarget' : self.handleSetTxConfirmTarget
+    'settxconfirmtarget' : self.handleSetTxConfirmTarget,
+    'getinstantguarantee' : self.handleGetInstantGuarantee
   };
-
 
   self.noLogArgsMethods = ['walletpassphrase', 'settoken', 'setkeychain'];
 
