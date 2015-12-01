@@ -1149,10 +1149,14 @@ BitGoD.prototype.handleGetInstantGuarantee = function(id) {
   });
 };
 
-BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
+BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant) {
   this.ensureWallet();
   var self = this;
   var satoshis = Math.round(Number(btcAmount) * 1e8);
+
+  if (instant && typeof(instant) !== 'boolean') {
+    throw self.error('Instant flag was not a boolean', -1);
+  }
 
   return this.getWallet()
   .then(function(wallet) {
@@ -1162,7 +1166,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
       minConfirms: 1,
       recipients: recipients,
       feeRate: self.txFeeRate,
-      feeTxConfirmTarget: self.txConfirmTarget
+      feeTxConfirmTarget: self.txConfirmTarget,
+      instant: !!instant
     });
   })
   .then(function(result) {
@@ -1172,7 +1177,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   .then(function(tx) {
     return self.wallet.sendTransaction({
       tx: tx.tx,
-      message: comment
+      message: comment,
+      instant: !!instant
     });
   })
   .then(function(result) {
@@ -1187,11 +1193,15 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment) {
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant) {
   this.ensureWallet();
   var self = this;
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
+
+  if (instant && typeof(instant) !== 'boolean') {
+    throw self.error('Instant flag was not a boolean', -1);
+  }
 
   if (recipients instanceof Array) {
     recipients.forEach(function(recipient) {
@@ -1212,7 +1222,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
       minConfirms: minConfirms,
       recipients: recipients,
       feeRate: self.txFeeRate,
-      feeTxConfirmTarget: self.txConfirmTarget
+      feeTxConfirmTarget: self.txConfirmTarget,
+      instant: !!instant
     });
   })
   .then(function(result) {
@@ -1222,7 +1233,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
   .then(function(tx) {
     return self.wallet.sendTransaction({
       tx: tx.tx,
-      message: comment
+      message: comment,
+      instant: !!instant
     });
   })
   .then(function(result) {
@@ -1483,7 +1495,6 @@ BitGoD.prototype.run = function(testArgString) {
 
   _.forEach(self.traditionalBitcoindMethods, exposeMethods);
   _.forEach(self.bitgoSpecificMethods, exposeMethods);
-
 
   return Q().then(function() {
     // Proxy bitcoind
