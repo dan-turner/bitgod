@@ -610,12 +610,13 @@ BitGoD.prototype.getBalance = function(minConfirms) {
   assert(typeof(minConfirms) !== 'undefined');
   var self = this;
   return Q().then(function() {
-    if (minConfirms >= 1) {
+    if (minConfirms >= 2) {
       return self.getBalanceFromUnspents(minConfirms, 9999999, true);
     }
     return self.getWallet()
     .then(function(wallet) {
-      return self.toBTC(wallet.balance());
+      var balance = minConfirms == 1 ? wallet.spendableBalance() : wallet.balance();
+      return self.toBTC(balance);
     });
   }).then(function(balance) {
     return balance;
@@ -992,7 +993,7 @@ BitGoD.prototype.handleListSinceBlock = function(blockHash, targetConfirms) {
   }
 
   var transactions;
-  
+
   return Q()
   .then(function() {
     // If a block hash was provided, find it's height. If no hash provided, then get all transactions from height of 0

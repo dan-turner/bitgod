@@ -393,44 +393,39 @@ describe('BitGoD', function() {
       .reply(200, {"feePerKb":20000,"numBlocks":2});
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents')
-      .reply(200, {"unspents":[ { tx_hash: 'e221a92abd3b446787550d7c34954b76a4fb49f5eb1091bdc9a9adabeed30de5',
-        tx_output_n: 0,
-        date: '2015-07-07T20:37:18.110Z',
-        address: '2MvjLv8oyxrnYdTZ8zmmb1QE8uf16VVi4fZ',
-        script: 'a9142639ced1448d394e718ad6f51d4c427f1eb6622b87',
-        value: 56547875758,
-        blockHeight: -1,
-        wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-        redeemScript: '522102598ab55d2be39e124fec05bdcc5150e71363c7c41156c67f9fcdccd88b3961de21033cbe7d4b35f76bf777dd87557d19d06b50c3ec60f13e4dad5029b63b659399102102ee327f905a9eb37ea806172d6432fce61e0fe63c2b2999266d261d188f0a430853ae',
-        chainPath: '/1/105',
-        isChange: true,
-        confirmations: 0 },
-        { tx_hash: '15a5690c2b5e5b601dc4ec53d060396e247f7c7aaf73cfdce6bbb0f1aa457ee6',
-          tx_output_n: 0,
-          date: '2015-07-07T20:40:07.594Z',
-          address: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          script: 'a914b238b35dd6399962fbc746f467774c2cf4966a5d87',
-          value: 139127071,
-          blockHeight: -1,
-          wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          redeemScript: '522102e8ff22efc04a4d85e4dc383058eaf163fb93bf847e450c2cdaf893298f1b4c1321034eb5acb9d1134bcee9c211b23282fb67dc29fc4c78c630c89fa5b8c5146fe2a12102e5aecdb7e94c9c7e0dc119daab73504d849e2223cfdda60b395af5558c97806853ae',
-          chainPath: '/0/0',
-          isChange: null,
-          confirmations: 0 } ],"pendingTransactions":false});
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+        .reply(200, ["1f8b08000000000002038d53d96ea33014fd95cacf748a590ce42dcd568545340b4933aa46c6760849008735a4eabf8f49da9166d4d10c2f58f71e9f7bac73ee1bf81153d003ba86149d2248439d99bafcf959c44454411a0112b8e214cf0af0409b0f679e978e5a34312fced88cd2a7e8f0829cc0f28bb5801e71c88e02bd604579b7c2c7232bef604751f44919d70cf4cabc6212285b2ecea0c05bb6a3a2bfcd19bb88ca1b28e3a4eb2832d4ef21bc578c856cf474b3279bdf6443db082c3bf33867c55720f8017a9700a6499c0eb22a2d410f4a80e7718dcbeb84036bc90ec7a960f8fe06cebc0a0555f74308baaddbf44fb3908cb6b3d1305906b69ae90d3b44997270a9e91be5c6362ff9307ad4748d54c1b4587afafa7269123a9e35fb2c5b25c91e65593dda381946287e721f4fb535adf22a5da2935d0d6ac2dde14e3c83e37227063fc80fb2d0fb5721e379a5137be37aa643c96203b5fe30ce7840d19c470367c7479eaf046b67e3109c6f3d786aa62f67b3ad5a8e9e0fc978855f9c83e638c3993e7417ab916b87c85a5e76f69a9c7d5f594ffe5fc88405c56a32486081a366399d1b7d7bba5fc1c9a5a4f6596b385cfad6997b85eedbfe2918a3335e5bfbe7b5ba516244177a366dc97844cb5d9bf841dcccfa493e8ea2ba3f4fc2fd0ab3ea4f21afc243cef2242e8a38ebbcba392a159ca554aa63d6800f933b4fab82e5373fbbd32dd610534aadd092358a0954ba54abaaaeca086ab205fec97e5550e2a8a37d95c0b513a7519f905ba86e41feac729e67353e7e8049966ee33c61f4111f714a44ec74844c43961553b13eb87078645fb7c3af2fb16eaaa62053eed6d482509640ce08136b2516545315cd500d19424b15e82afda5612e86095df26fc5d9ed62577fff0959300a2f0b040000"], { 'access-control-allow-headers': 'content-type, authorization',
+        'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'access-control-allow-origin': '*',
+        'cache-control': 'private, no-cache, no-store, must-revalidate',
+        'content-encoding': 'gzip',
+        'content-type': 'application/json; charset=utf-8',
+        date: 'Thu, 17 Dec 2015 17:50:29 GMT',
+        expires: '-1',
+        pragma: 'no-cache',
+        server: 'nginx/1.6.2',
+        'set-cookie':
+         [ 'bgAbTest=eyJjaWQiOiIyZjcwNmM4Zi1iZWY2LTQzMzEtYjY1My1mZmE4NTYwYzRiNjUifQ==; path=/',
+           'bgAbTest.sig=hMReMrvrvNrWLdhz4UsBVQUOKyE; path=/' ],
+        'strict-transport-security': 'max-age=31536000',
+        vary: 'Accept-Encoding',
+        'x-content-type-options': 'nosniff',
+        'x-frame-options': 'deny',
+        'x-xss-protection': '1; mode=block',
+        'content-length': '659',
+        connection: 'Close' });
 
       return callRPC('getinfo')
       .then(function(result) {
         result.token.should.equal(true);
         result.wallet.should.equal('2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX');
         result.keychain.should.equal(true);
-        result.balance.should.equal(565.47875758);
+        result.balance.should.equal(566.87002829);
       });
     });
 
     it('getwalletinfo', function() {
       nock('https://test.bitgo.com:443')
-      .persist()
       .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
       .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","canSendInstant":true,"label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":71873015758,"balance":81873015758,"unconfirmedReceives":20000,"unconfirmedSends":30000,"pendingApprovals":[]});
       return callRPC('getwalletinfo')
@@ -475,75 +470,44 @@ describe('BitGoD', function() {
 
     it('getbalance', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents')
-      .reply(200, {"unspents":[ { tx_hash: 'e221a92abd3b446787550d7c34954b76a4fb49f5eb1091bdc9a9adabeed30de5',
-        tx_output_n: 0,
-        date: '2015-07-07T20:37:18.110Z',
-        address: '2MvjLv8oyxrnYdTZ8zmmb1QE8uf16VVi4fZ',
-        script: 'a9142639ced1448d394e718ad6f51d4c427f1eb6622b87',
-        value: 56547875758,
-        blockHeight: -1,
-        wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-        redeemScript: '522102598ab55d2be39e124fec05bdcc5150e71363c7c41156c67f9fcdccd88b3961de21033cbe7d4b35f76bf777dd87557d19d06b50c3ec60f13e4dad5029b63b659399102102ee327f905a9eb37ea806172d6432fce61e0fe63c2b2999266d261d188f0a430853ae',
-        chainPath: '/1/105',
-        isChange: true,
-        confirmations: 0 },
-        { tx_hash: '15a5690c2b5e5b601dc4ec53d060396e247f7c7aaf73cfdce6bbb0f1aa457ee6',
-          tx_output_n: 0,
-          date: '2015-07-07T20:40:07.594Z',
-          address: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          script: 'a914b238b35dd6399962fbc746f467774c2cf4966a5d87',
-          value: 139127071,
-          blockHeight: -1,
-          wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          redeemScript: '522102e8ff22efc04a4d85e4dc383058eaf163fb93bf847e450c2cdaf893298f1b4c1321034eb5acb9d1134bcee9c211b23282fb67dc29fc4c78c630c89fa5b8c5146fe2a12102e5aecdb7e94c9c7e0dc119daab73504d849e2223cfdda60b395af5558c97806853ae',
-          chainPath: '/0/0',
-          isChange: null,
-          confirmations: 0 } ],"pendingTransactions":false});
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+        .reply(200, ["1f8b08000000000002038d53d96ea33014fd95cacf748a590ce42dcd568545340b4933aa46c6760849008735a4eabf8f49da9166d4d10c2f58f71e9f7bac73ee1bf81153d003ba86149d2248439d99bafcf959c44454411a0112b8e214cf0af0409b0f679e978e5a34312fced88cd2a7e8f0829cc0f28bb5801e71c88e02bd604579b7c2c7232bef604751f44919d70cf4cabc6212285b2ecea0c05bb6a3a2bfcd19bb88ca1b28e3a4eb2832d4ef21bc578c856cf474b3279bdf6443db082c3bf33867c55720f8017a9700a6499c0eb22a2d410f4a80e7718dcbeb84036bc90ec7a960f8fe06cebc0a0555f74308baaddbf44fb3908cb6b3d1305906b69ae90d3b44997270a9e91be5c6362ff9307ad4748d54c1b4587afafa7269123a9e35fb2c5b25c91e65593dda381946287e721f4fb535adf22a5da2935d0d6ac2dde14e3c83e37227063fc80fb2d0fb5721e379a5137be37aa643c96203b5fe30ce7840d19c470367c7479eaf046b67e3109c6f3d786aa62f67b3ad5a8e9e0fc978855f9c83e638c3993e7417ab916b87c85a5e76f69a9c7d5f594ffe5fc88405c56a32486081a366399d1b7d7bba5fc1c9a5a4f6596b385cfad6997b85eedbfe2918a3335e5bfbe7b5ba516244177a366dc97844cb5d9bf841dcccfa493e8ea2ba3f4fc2fd0ab3ea4f21afc243cef2242e8a38ebbcba392a159ca554aa63d6800f933b4fab82e5373fbbd32dd610534aadd092358a0954ba54abaaaeca086ab205fec97e5550e2a8a37d95c0b513a7519f905ba86e41feac729e67353e7e8049966ee33c61f4111f714a44ec74844c43961553b13eb87078645fb7c3af2fb16eaaa62053eed6d482509640ce08136b2516545315cd500d19424b15e82afda5612e86095df26fc5d9ed62577fff0959300a2f0b040000"], { 'access-control-allow-headers': 'content-type, authorization',
+        'content-encoding': 'gzip',
+        'content-type': 'application/json; charset=utf-8',
+        'content-length': '659' });
+
       return callRPC('getbalance')
       .then(function(result) {
-        result.should.equal(565.47875758);
+        result.should.equal(566.87002829);
       });
     });
 
     it('getunconfirmedbalance', function() {
+      nock('https://test.bitgo.com:443')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+        .reply(200, ["1f8b08000000000002038d53d96ea33014fd95cacf748a590ce42dcd568545340b4933aa46c6760849008735a4eabf8f49da9166d4d10c2f58f71e9f7bac73ee1bf81153d003ba86149d2248439d99bafcf959c44454411a0112b8e214cf0af0409b0f679e978e5a34312fced88cd2a7e8f0829cc0f28bb5801e71c88e02bd604579b7c2c7232bef604751f44919d70cf4cabc6212285b2ecea0c05bb6a3a2bfcd19bb88ca1b28e3a4eb2832d4ef21bc578c856cf474b3279bdf6443db082c3bf33867c55720f8017a9700a6499c0eb22a2d410f4a80e7718dcbeb84036bc90ec7a960f8fe06cebc0a0555f74308baaddbf44fb3908cb6b3d1305906b69ae90d3b44997270a9e91be5c6362ff9307ad4748d54c1b4587afafa7269123a9e35fb2c5b25c91e65593dda381946287e721f4fb535adf22a5da2935d0d6ac2dde14e3c83e37227063fc80fb2d0fb5721e379a5137be37aa643c96203b5fe30ce7840d19c470367c7479eaf046b67e3109c6f3d786aa62f67b3ad5a8e9e0fc978855f9c83e638c3993e7417ab916b87c85a5e76f69a9c7d5f594ffe5fc88405c56a32486081a366399d1b7d7bba5fc1c9a5a4f6596b385cfad6997b85eedbfe2918a3335e5bfbe7b5ba516244177a366dc97844cb5d9bf841dcccfa493e8ea2ba3f4fc2fd0ab3ea4f21afc243cef2242e8a38ebbcba392a159ca554aa63d6800f933b4fab82e5373fbbd32dd610534aadd092358a0954ba54abaaaeca086ab205fec97e5550e2a8a37d95c0b513a7519f905ba86e41feac729e67353e7e8049966ee33c61f4111f714a44ec74844c43961553b13eb87078645fb7c3af2fb16eaaa62053eed6d482509640ce08136b2516545315cd500d19424b15e82afda5612e86095df26fc5d9ed62577fff0959300a2f0b040000"], { 'access-control-allow-headers': 'content-type, authorization',
+        'content-encoding': 'gzip',
+        'content-type': 'application/json; charset=utf-8',
+        'content-length': '659' });
+
       return callRPC('getunconfirmedbalance')
       .then(function(result) {
-        result.should.equal(100);
+        result.should.equal(0);
       });
     });
 
     it('listaccounts', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents')
-      .reply(200, {"unspents":[ { tx_hash: 'e221a92abd3b446787550d7c34954b76a4fb49f5eb1091bdc9a9adabeed30de5',
-        tx_output_n: 0,
-        date: '2015-07-07T20:37:18.110Z',
-        address: '2MvjLv8oyxrnYdTZ8zmmb1QE8uf16VVi4fZ',
-        script: 'a9142639ced1448d394e718ad6f51d4c427f1eb6622b87',
-        value: 56547875758,
-        blockHeight: -1,
-        wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-        redeemScript: '522102598ab55d2be39e124fec05bdcc5150e71363c7c41156c67f9fcdccd88b3961de21033cbe7d4b35f76bf777dd87557d19d06b50c3ec60f13e4dad5029b63b659399102102ee327f905a9eb37ea806172d6432fce61e0fe63c2b2999266d261d188f0a430853ae',
-        chainPath: '/1/105',
-        isChange: true,
-        confirmations: 0 },
-        { tx_hash: '15a5690c2b5e5b601dc4ec53d060396e247f7c7aaf73cfdce6bbb0f1aa457ee6',
-          tx_output_n: 0,
-          date: '2015-07-07T20:40:07.594Z',
-          address: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          script: 'a914b238b35dd6399962fbc746f467774c2cf4966a5d87',
-          value: 139127071,
-          blockHeight: -1,
-          wallet: '2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX',
-          redeemScript: '522102e8ff22efc04a4d85e4dc383058eaf163fb93bf847e450c2cdaf893298f1b4c1321034eb5acb9d1134bcee9c211b23282fb67dc29fc4c78c630c89fa5b8c5146fe2a12102e5aecdb7e94c9c7e0dc119daab73504d849e2223cfdda60b395af5558c97806853ae',
-          chainPath: '/0/0',
-          isChange: null,
-          confirmations: 0 } ],"pendingTransactions":false});
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+        .reply(200, ["1f8b08000000000002038d53d96ea33014fd95cacf748a590ce42dcd568545340b4933aa46c6760849008735a4eabf8f49da9166d4d10c2f58f71e9f7bac73ee1bf81153d003ba86149d2248439d99bafcf959c44454411a0112b8e214cf0af0409b0f679e978e5a34312fced88cd2a7e8f0829cc0f28bb5801e71c88e02bd604579b7c2c7232bef604751f44919d70cf4cabc6212285b2ecea0c05bb6a3a2bfcd19bb88ca1b28e3a4eb2832d4ef21bc578c856cf474b3279bdf6443db082c3bf33867c55720f8017a9700a6499c0eb22a2d410f4a80e7718dcbeb84036bc90ec7a960f8fe06cebc0a0555f74308baaddbf44fb3908cb6b3d1305906b69ae90d3b44997270a9e91be5c6362ff9307ad4748d54c1b4587afafa7269123a9e35fb2c5b25c91e65593dda381946287e721f4fb535adf22a5da2935d0d6ac2dde14e3c83e37227063fc80fb2d0fb5721e379a5137be37aa643c96203b5fe30ce7840d19c470367c7479eaf046b67e3109c6f3d786aa62f67b3ad5a8e9e0fc978855f9c83e638c3993e7417ab916b87c85a5e76f69a9c7d5f594ffe5fc88405c56a32486081a366399d1b7d7bba5fc1c9a5a4f6596b385cfad6997b85eedbfe2918a3335e5bfbe7b5ba516244177a366dc97844cb5d9bf841dcccfa493e8ea2ba3f4fc2fd0ab3ea4f21afc243cef2242e8a38ebbcba392a159ca554aa63d6800f933b4fab82e5373fbbd32dd610534aadd092358a0954ba54abaaaeca086ab205fec97e5550e2a8a37d95c0b513a7519f905ba86e41feac729e67353e7e8049966ee33c61f4111f714a44ec74844c43961553b13eb87078645fb7c3af2fb16eaaa62053eed6d482509640ce08136b2516545315cd500d19424b15e82afda5612e86095df26fc5d9ed62577fff0959300a2f0b040000"], { 'access-control-allow-headers': 'content-type, authorization',
+        'content-encoding': 'gzip',
+        'content-type': 'application/json; charset=utf-8',
+        'content-length': '659' });
+
       return callRPC('listaccounts')
       .then(function(result) {
         result.should.have.property('');
-        result[''].should.equal(565.47875758);
+        result[''].should.equal(566.87002829);
       });
     });
   });
@@ -1199,14 +1163,8 @@ describe('BitGoD', function() {
       .reply(200, {"feePerKb": 15608, "numBlocks": 4});
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents')
-      .reply(200, ["1f8b0800000000000203b5944b6f5c370c85ffcb5d4f6251122571b669da2c5c236d0ca34951041449cd4c33be36e6e1e681fcf7f016099014596453403b51d4393c9ff4613acfc77b9b4fc769fde787e9f4f6f5968fdb693d598cc014b96bea3997da2a62d02a2913e65e0be7d1330db40e81a0ab10132b77334d410da7d5d2ecee7cba3f9f5ecfd33aac26e59379e718001f85eaeb3a8675aa6b688f01c22b3fc1aa073b1e97a25f1ffebe7c6877efde1ee6977afdaabdbfbdedf0dbd3761e506e6e76792cf54739ecee4f5ece04399644620a39374d94ad42632d0341b3e45807582f25c6deaa9f7ce0fdd9c560c1bc58abd85653dfdfc99b67b6db6cbde523584dfff07e6f4bfb784537fc24bff8e9f7ababf9e9bbf24b7b7ff973dbcccf366f5e96cb1b7a7efcc37b1e4ccd6e5f7cd1843ec110911a77448ddd1219c43c4c02fabc0401838b4c2549950c80454a1d34c4f7b4b59ea8809af74849ba55cd3de1a8a58f5aabea924755200da563906452c2806459593144ea25f58294885c842fb3e433a0804cd653356ea1408d5a728a43ac8085612e25f64844b1148d7e3db43602e7141a2636f7285bdecdcff9b4207201171096a077c7275b9e373ecfd3e16c5e74378fdde1964fbbbbd9c30c1f575f9305c85828f84d68d84b00956c82c99d04f76c31d751a5328f9a64a86bebbdbb37e68cd5acfc285939ac437d8c94ff43d60f65f90d593d268f03559d30a21247979acbf057516b96282353298cfa35599008620d15fe27aeac8d11a30d0999b336f4e025b514b019fb1349a353eaa3e56ad9f188a23c1aa5486d40cf0269e12a5b47964e0a907217339208e06e63738fa5aa44c7314b6d5252904683b13707d7cd5b64f85707b289f66a9485a45a5001a792b9d784c19565f2af242e492a97e054230f446c42d511fc2e57e1227c43d57cdeefbf43d55fabc97f2eddcd9beb03cf4796cf3b83f747fbf809abd0fc1bda040000"],
-      {
-        'content-encoding': 'gzip',
-        'content-type': 'application/json; charset=utf-8',
-        vary: 'Accept-Encoding',
-        'transfer-encoding': 'chunked'
-      });
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+        .reply(200, ["1f8b08000000000002038d53d96ea33014fd95cacf748a590ce42dcd568545340b4933aa46c6760849008735a4eabf8f49da9166d4d10c2f58f71e9f7bac73ee1bf81153d003ba86149d2248439d99bafcf959c44454411a0112b8e214cf0af0409b0f679e978e5a34312fced88cd2a7e8f0829cc0f28bb5801e71c88e02bd604579b7c2c7232bef604751f44919d70cf4cabc6212285b2ecea0c05bb6a3a2bfcd19bb88ca1b28e3a4eb2832d4ef21bc578c856cf474b3279bdf6443db082c3bf33867c55720f8017a9700a6499c0eb22a2d410f4a80e7718dcbeb84036bc90ec7a960f8fe06cebc0a0555f74308baaddbf44fb3908cb6b3d1305906b69ae90d3b44997270a9e91be5c6362ff9307ad4748d54c1b4587afafa7269123a9e35fb2c5b25c91e65593dda381946287e721f4fb535adf22a5da2935d0d6ac2dde14e3c83e37227063fc80fb2d0fb5721e379a5137be37aa643c96203b5fe30ce7840d19c470367c7479eaf046b67e3109c6f3d786aa62f67b3ad5a8e9e0fc978855f9c83e638c3993e7417ab916b87c85a5e76f69a9c7d5f594ffe5fc88405c56a32486081a366399d1b7d7bba5fc1c9a5a4f6596b385cfad6997b85eedbfe2918a3335e5bfbe7b5ba516244177a366dc97844cb5d9bf841dcccfa493e8ea2ba3f4fc2fd0ab3ea4f21afc243cef2242e8a38ebbcba392a159ca554aa63d6800f933b4fab82e5373fbbd32dd610534aadd092358a0954ba54abaaaeca086ab205fec97e5550e2a8a37d95c0b513a7519f905ba86e41feac729e67353e7e8049966ee33c61f4111f714a44ec74844c43961553b13eb87078645fb7c3af2fb16eaaa62053eed6d482509640ce08136b2516545315cd500d19424b15e82afda5612e86095df26fc5d9ed62577fff0959300a2f0b040000"]);
 
       return callRPC('settxconfirmtarget', 4)
       .then(function (result) {
