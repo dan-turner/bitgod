@@ -1161,6 +1161,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
 
   return this.getWallet()
   .then(function(wallet) {
+    self.wallet = wallet;
     var recipients = {};
     recipients[address] = satoshis;
     return self.wallet.createTransaction({
