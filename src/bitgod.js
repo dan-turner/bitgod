@@ -1232,7 +1232,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
       recipients: recipients,
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
-      instant: !!instant
+      instant: !!instant,
+      minUnspentsTarget: self.minUnspentsTarget
     });
   })
   .then(function(result) {
