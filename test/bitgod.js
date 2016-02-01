@@ -73,7 +73,8 @@ describe('BitGoD', function() {
 
     // Setup BitGoD
     bitgod = new BitGoD().setLoggingEnabled(false);
-    return bitgod.run('-env test -rpcuser=test -rpcpassword=pass');
+    // pass in minunspentstarget option to test if BitGoD reads it in correctly
+    return bitgod.run('-env test -rpcuser=test -rpcpassword=pass -minunspentstarget=50');
   });
 
   describe('Initialization', function(done) {
@@ -103,6 +104,11 @@ describe('BitGoD', function() {
         result.paytxfee.should.equal(0.0002);
         result.txconfirmtarget.should.equal(2);
       });
+    });
+
+    it('should have read in minunspentstarget option correctly', function() {
+      bitgod.should.have.property('minUnspentsTarget');
+      bitgod.minUnspentsTarget.should.equal(50);
     });
 
     it('not an API', function() {

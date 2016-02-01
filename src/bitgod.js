@@ -147,6 +147,11 @@ BitGoD.prototype.getArgs = function(args) {
       help: 'Validate transaction data against local bitcoind (requires -proxy)'
   });
 
+  parser.addArgument(
+    ['-minunspentstarget'], {
+      help: 'The number of UTXO\'s that will exist after a transaction is sent'
+  });
+
   return parser.parseArgs(args);
 };
 
@@ -1158,18 +1163,20 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
   if (instant && typeof(instant) !== 'boolean') {
     throw self.error('Instant flag was not a boolean', -1);
   }
-
+  
   return this.getWallet()
   .then(function(wallet) {
     self.wallet = wallet;
     var recipients = {};
     recipients[address] = satoshis;
+
     return self.wallet.createTransaction({
       minConfirms: 1,
       recipients: recipients,
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
-      instant: !!instant
+      instant: !!instant,
+      minUnspentsTarget: self.minUnspentsTarget
     });
   })
   .then(function(result) {
@@ -1396,7 +1403,7 @@ BitGoD.prototype.run = function(testArgString) {
   var serverOptions = {
     'websocket': true,
     'headers': {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': '*'
     }
   };
 
@@ -1433,6 +1440,14 @@ BitGoD.prototype.run = function(testArgString) {
   }
 
   self.masqueradeAccount = config.masqueradeaccount;
+
+  if (config.minunspentstarget) {
+    var parsedMinUnspentsTarget = parseInt(config.minunspentstarget);
+    if (parsedMinUnspentsTarget === NaN) {
+      throw new Error('minunspentstarget option must be a number');
+    }
+    self.minUnspentsTarget = parsedMinUnspentsTarget;
+  }
 
   self.notImplemented = [];
 
