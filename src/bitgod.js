@@ -360,14 +360,57 @@ BitGoD.prototype.modifyError = function(err) {
     return this.error('Transaction amounts must be positive', -6);
   }
   if (message.indexOf('exceeds daily limit') !== -1) {
-    var message = 'Exceeds daily policy limit';
+    message = 'Exceeds daily policy limit';
     if (err.pendingApproval) {
       message += ', pendingApproval=' + err.pendingApproval;
     }
-    var error = this.error(message, -10501);
-    return error;
+    return this.error(message, -10501);
   }
-  return err;
+  if (message.indexOf('exceeds per-transaction limit') !== -1) {
+    message = 'Exceeds daily policy limit';
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    return this.error(message, -10502);
+  }
+  if (message.indexOf('violates bitcoin address') !== -1) {
+    message = message[0].toUpperCase() + message.substring(1);
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    return this.error(message, -10503);
+  }
+  if (message.indexOf('exceeds a spending limit') !== -1) {
+    message = 'Exceeds a spending limit';
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    return this.error(message, -10504);
+  }
+  if (message.indexOf('webhook failed to return approval') !== -1) {
+    message = 'Webhook failed to return approval';
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    return this.error(message, -10505);
+  }
+  if (message.indexOf('violates weekday policy rule') !== -1) {
+    message = 'Violates weekday policy rule';
+    if (err.pendingApproval) {
+      message += ', pendingApproval=' + err.pendingApproval;
+    }
+    return this.error(message, -10506);
+  }
+
+  // if the error still hasn't been caught, stringify the error
+  // and use that as the message so at least the user can read
+  // the error themselves to ascertain what caused the error
+  try {
+    return this.error(JSON.stringify(err), -10600);
+  } catch (e) {
+    // well at least we tried
+    return this.error('Unknown error', -10700);
+  }
 };
 
 BitGoD.prototype.getWallet = function(id) {
