@@ -367,7 +367,7 @@ BitGoD.prototype.modifyError = function(err) {
     return this.error(message, -10501);
   }
   if (message.indexOf('exceeds per-transaction limit') !== -1) {
-    message = 'Exceeds daily policy limit';
+    message = 'Exceeds per-transaction limit';
     if (err.pendingApproval) {
       message += ', pendingApproval=' + err.pendingApproval;
     }
