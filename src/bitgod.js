@@ -1160,6 +1160,10 @@ BitGoD.prototype.handleGetTransaction = function(txid) {
       });
     });
 
+    if (tx.netValue < 0) {
+      result.fee = self.toBTC(-tx.fee);
+    }
+
     return result;
   })
   .catch(function(err) {
