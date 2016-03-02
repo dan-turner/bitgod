@@ -402,15 +402,7 @@ BitGoD.prototype.modifyError = function(err) {
     return this.error(message, -10506);
   }
 
-  // if the error still hasn't been caught, stringify the error
-  // and use that as the message so at least the user can read
-  // the error themselves to ascertain what caused the error
-  try {
-    return this.error(JSON.stringify(err), -10600);
-  } catch (e) {
-    // well at least we tried
-    return this.error('Unknown error', -10700);
-  }
+  return this.error(message, -10600);
 };
 
 BitGoD.prototype.getWallet = function(id) {
@@ -1210,7 +1202,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
   if (instant && typeof(instant) !== 'boolean') {
     throw self.error('Instant flag was not a boolean', -1);
   }
-  
+
   return this.getWallet()
   .then(function(wallet) {
     self.wallet = wallet;
