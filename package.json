@@ -1,6 +1,6 @@
 {
   "name": "bitgod",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "BitGo API proxy conforming to bitcoind JSON-RPC API",
   "main": "src/index.js",
   "bin": {

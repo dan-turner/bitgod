@@ -353,6 +353,9 @@ BitGoD.prototype.modifyError = function(err) {
   if (message.indexOf('transaction not found') !== -1) {
     return this.error('Invalid or non-wallet transaction id', -5);
   }
+  if (message.indexOf('sequence id not found') !== -1) {
+    return this.error('Invalid or non-wallet sequence id', -5);
+  }
   if (message.indexOf('invalid amount') !== -1) {
     return this.error('Invalid amount', -3);
   }
@@ -1163,6 +1166,20 @@ BitGoD.prototype.handleGetTransaction = function(txid) {
   });
 };
 
+BitGoD.prototype.handleGetTransactionBySequenceId = function(sequenceId) {
+  var self = this;
+  this.ensureWallet();
+
+  return this.wallet.getWalletTransactionBySequenceId({ sequenceId: sequenceId })
+  .then(function(wallettx) {
+    return wallettx.transaction;
+  })
+  .catch(function(err) {
+    throw self.modifyError(err);
+  });
+};
+
+
 BitGoD.prototype.handleSetTxFee = function(btcAmount) {
   this.ensureWallet();
   this.txFeeRate = Math.round(Number(btcAmount) * 1e8);
@@ -1194,7 +1211,7 @@ BitGoD.prototype.handleGetInstantGuarantee = function(id) {
   });
 };
 
-BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant) {
+BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant, sequenceId) {
   this.ensureWallet();
   var self = this;
   var satoshis = Math.round(Number(btcAmount) * 1e8);
@@ -1226,7 +1243,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
     return self.wallet.sendTransaction({
       tx: tx.tx,
       message: comment,
-      instant: !!instant
+      instant: !!instant,
+      sequenceId: sequenceId
     });
   })
   .then(function(result) {
@@ -1241,7 +1259,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId) {
   this.ensureWallet();
   var self = this;
   this.ensureBlankAccount(account);
@@ -1283,7 +1301,8 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
     return self.wallet.sendTransaction({
       tx: tx.tx,
       message: comment,
-      instant: !!instant
+      instant: !!instant,
+      sequenceId: sequenceId
     });
   })
   .then(function(result) {
@@ -1541,7 +1560,8 @@ BitGoD.prototype.run = function(testArgString) {
     'lock' : self.handleLock,
     'freezewallet' : self.handleFreezeWallet,
     'settxconfirmtarget' : self.handleSetTxConfirmTarget,
-    'getinstantguarantee' : self.handleGetInstantGuarantee
+    'getinstantguarantee' : self.handleGetInstantGuarantee,
+    'gettransactionbysequenceid' : self.handleGetTransactionBySequenceId
   };
 
   self.noLogArgsMethods = ['walletpassphrase', 'settoken', 'setkeychain'];

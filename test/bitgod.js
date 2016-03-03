@@ -895,6 +895,85 @@ describe('BitGoD', function() {
 
   });
 
+
+  describe('Get transaction by sequence id', function(done) {
+
+    before(function() {
+      nock.cleanAll();
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/sequence/nosuchsequenceid')
+      .reply(404, {"error":"sequence id not found for this wallet"});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/tx/sequence/10001')
+      .reply(200, {
+          transaction:
+          {
+            "id": "56d7d2e8f276d6f509b10e337130249c",
+            "walletId": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+            "toAddress": "2N2PUWtjM27cbR1X6rpBUQD3FqsMLCbqxYA",
+            "transactionId": "a252387200b17924127507c8b13fe2833c0889f75a096261ee1d5f87fff383ce",
+            "date": "2016-03-03T06:00:08.568Z",
+            "createdDate": "2016-03-03T06:00:08.405Z",
+            "signedDate": "2016-03-03T06:00:08.405Z",
+            "comment": "test_comment_8",
+            "amount": -10025650,
+            "fee": 25650,
+            "size": 370,
+            "state": "unconfirmed",
+            "instant": false,
+            "instantFee": 0,
+            "sequenceId": "10001",
+            "creator": "5458141599f715232500000530a94fd2",
+            "history": [
+              {
+                "date": "2016-03-03T06:00:08.568Z",
+                "action": "unconfirmed"
+              },
+              {
+                "date": "2016-03-03T06:00:08.405Z",
+                "user": "5458141599f715232500000530a94fd2",
+                "action": "signed",
+                "comment": "test_comment_8"
+              },
+              {
+                "date": "2016-03-03T06:00:08.405Z",
+                "user": "5458141599f715232500000530a94fd2",
+                "action": "created",
+                "comment": "test_comment_8"
+              }
+            ]
+          }
+        },
+        { 'access-control-allow-origin': '*',
+          allow: 'POST',
+          'access-control-allow-headers': 'Content-Type',
+          'content-length': '41',
+          'content-type': 'application/json',
+          date: 'Mon, 30 Nov 2015 21:55:36 GMT',
+          connection: 'close' });
+    });
+
+    it('sequence id not found', function() {
+      return callRPC('gettransactionbysequenceid', 'nosuchsequenceid')
+      .then(expectError, function(err) {
+        err.code.should.equal(-5);
+        err.message.should.match(/Invalid or non-wallet sequence id/);
+      });
+    });
+
+    it('success', function() {
+      return callRPC('gettransactionbysequenceid', '10001')
+      .then(function(result) {
+        result.transactionId.should.eql('a252387200b17924127507c8b13fe2833c0889f75a096261ee1d5f87fff383ce');
+        result.walletId.should.eql("2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX");
+        result.state.should.eql("unconfirmed");
+        result.sequenceId.should.eql("10001");
+      });
+    });
+  });
+
   describe('Send to address', function(done) {
 
     before(function() {
