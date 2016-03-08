@@ -10,12 +10,41 @@ var rpc = require('json-rpc2');
 var Q = require('q');
 var fs = require('fs');
 var _ = require('lodash');
+var winston = require('winston');
 _.string = require('underscore.string');
 var pjson = require('../package.json');
 var BITGOD_VERSION = pjson.version;
 
+Q.longStackSupport = true;
+
 var BitGoD = function () {
   this.loggingEnabled = true;
+
+  // Set up logger
+  var logLevels = {
+    debug: 0,
+    info: 1,
+    error: 2
+  };
+
+  var logColors = {
+    debug: 'grey',
+    info: 'blue',
+    error: 'red',
+    fatal: 'magenta'
+  };
+
+  this.logger = new(winston.Logger)({
+    colors: logColors,
+    levels: logLevels,
+    transports: [],
+  });
+  this.logger.add(winston.transports.Console, { level: 'info', timestamp: true, colorize: true });
+
+  console.log = this.logger.info;
+  console.info = this.logger.info;
+  console.warn = this.logger.error;
+  console.error = this.logger.error;
 };
 
 BitGoD.prototype.setLoggingEnabled = function(loggingEnabled) {
@@ -150,6 +179,11 @@ BitGoD.prototype.getArgs = function(args) {
   parser.addArgument(
     ['-minunspentstarget'], {
       help: 'The number of UTXO\'s that will exist after a transaction is sent'
+  });
+
+  parser.addArgument(
+    ['-logfile'], {
+      help: 'Log file location'
   });
 
   return parser.parseArgs(args);
@@ -330,7 +364,13 @@ BitGoD.prototype.error = function(message, code) {
 
 BitGoD.prototype.log = function() {
   if (this.loggingEnabled) {
-    return console.log.apply(console, arguments);
+    return this.logger.info.apply(this.logger, arguments);
+  }
+};
+
+BitGoD.prototype.logError = function() {
+  if (this.loggingEnabled) {
+    return this.logger.error.apply(this.logger, arguments);
   }
 };
 
@@ -1232,7 +1272,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
       instant: !!instant,
-      minUnspentsTarget: self.minUnspentsTarget
+      targetWalletUnspents: self.minUnspentsTarget
     });
   })
   .then(function(result) {
@@ -1290,7 +1330,7 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
       instant: !!instant,
-      minUnspentsTarget: self.minUnspentsTarget
+      targetWalletUnspents: self.minUnspentsTarget
     });
   })
   .then(function(result) {
@@ -1414,12 +1454,12 @@ BitGoD.prototype.expose = function(name, method, noLogArgs) {
   var self = this;
   this.server.expose(name, function(args, opt, callback) {
     var argString = noLogArgs ? '' : (' ' + JSON.stringify(args));
-    self.log('RPC call: ' + name + argString);
+    self.log('RPC call: ' + name, argString);
     return Q().then(function() {
       return method.apply(self, args);
     })
     .catch(function(err) {
-      self.log(err.stack);
+      self.logError(err.stack);
       throw err;
     })
     .nodeify(callback);
@@ -1500,12 +1540,18 @@ BitGoD.prototype.run = function(testArgString) {
 
   self.masqueradeAccount = config.masqueradeaccount;
 
+  self.minUnspentsTarget = 42; // Good initial default for a bitgod wallet
   if (config.minunspentstarget) {
     var parsedMinUnspentsTarget = parseInt(config.minunspentstarget);
     if (parsedMinUnspentsTarget === NaN) {
       throw new Error('minunspentstarget option must be a number');
     }
     self.minUnspentsTarget = parsedMinUnspentsTarget;
+  }
+
+  if (config.logfile) {
+    self.logger.add(winston.transports.File, { level: 'info', filename: config.logfile, timestamp: true, colorize: false, json: false });
+    self.logger.remove(winston.transports.Console);
   }
 
   self.notImplemented = [];
@@ -1586,7 +1632,7 @@ BitGoD.prototype.run = function(testArgString) {
     self.log('JSON-RPC server active on ' + config.rpcbind + ':' + port);
   })
   .catch(function(err) {
-    self.log(err.message);
+    self.logError(err.message);
     // self.log(err.stack);
   })
   .done();

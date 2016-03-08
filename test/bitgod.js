@@ -90,7 +90,7 @@ describe('BitGoD', function() {
 
     it('getinfo', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/tx/fee?numBlocks=2')
+      .get('/api/v1/tx/fee?version=12&numBlocks=2')
       .reply(200, {"feePerKb":20000,"numBlocks":2});
 
       return callRPC('getinfo')
@@ -395,7 +395,7 @@ describe('BitGoD', function() {
 
     it('getinfo', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/tx/fee?numBlocks=2')
+      .get('/api/v1/tx/fee?version=12&numBlocks=2')
       .reply(200, {"feePerKb":20000,"numBlocks":2});
 
       nock('https://test.bitgo.com:443')
@@ -1002,20 +1002,25 @@ describe('BitGoD', function() {
 
     it('sendtoaddress success', function() {
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/tx/fee?numBlocks=2')
-        .reply(200, {"feePerKb":20001,"numBlocks":2});
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+      .reply(200, ["1f8b08000000000002038d53db6ee23014fc95cacf741b3b894978a3dc2a92a03440a0acaa95639b602017722554fdf775a05d69575dede625d63973e68c35e337f04330d003ba8691ce306481ce0d5df9fc4c6a6086b04641075c716866fa64a0cd87de6c168f1a3c312ef6d808e3a7f0f0826ddf74f3b5841e49c08f12bde07971b722c7232fee604b91f769212a0e7a4556f20e289a549e414eb67cc7647f9b717e9195375088a8ed2005e27b05de237381d49ed6ed41f59ba91b1b89e5e754643cff0a843e40ef1d405824e24152c605e8c10e48335191e2bae1c01bba2322960cdfdfc0392d0349d5fe30864ee3d4fd9317d0d1d61b0da3a56fa9895ef34398a083c30cb75b6c2ce3920dc3474dd768e94ff3e54c5f5f2e75c4c65ebd4f925514ed719254a38d9d108cc593f378aacc699995f1129fac7250d1d419eee4355252ece4e207e541917aff2a643c2f756a6d9c996133bad840ad3f1449ea333c4fc381bd4b473317f96b7b6353926d67f0544f5fce465336297e3e44e31579b10f9a6d0f3d7de82c5623c70ab0b9bcecac353dbb2e5a4ffe5fc884fbf96a3288604ec27a399d77fbd674bf82934bc1acb356a770e99ae77496ebaee59efc313e93b5b97f5eab1b24305be8c9b4a1e3112b764de4faa2f6fa51360ec3aa3f8f82fd8af0f24f21afd2c3946791c87391b45edd1cede4298f59a712bc061f26b79e9639cf6e7eb6a75bac21618c9981a9688c5088da54abaaae2a186a8a09fec97e555090b0a57d95abd2344b2a72cc3d7e2a65fed8355657bc88c33ea5b7a8dde2fd59fd9cb951d024de8a2ce2ec911c494c6518758c8daea22003991f5c2438f2afdbc1d743bcddaa216c28ede33521543a20e394cbc726256a2ad2ba6a5781d05425ba8c7f6998cb655297f25bd1bb0db6f5f79f71ac739b21040000"]);
 
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=112000000')
-        .reply(200, {"unspents":[{"confirmations":228,"address":"2N2XYoQKXQGUXJUG7AvjA1LAGWzf65RcBHG","tx_hash":"ed426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":0,"value":10000000000,"script":"a91465cf7dc1dc237ad59225140773994a747674e42387","redeemScript":"5221021971b4d7c5d919e2655134ac12daa755cd1d6a14996c5b272de24178f3649e952103f8bb35d209e20c1f64f9f2c5686efbcb212a504d3c5ee65e9623187c03009a9321036d051911592ef2a7a72bd53c767d1e57f260c7627a8115d6204d9f33c7dbcc7b53ae","chainPath":"/0/27"}],"pendingTransactions":false});
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
 
       nock('https://test.bitgo.com:443')
-        .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
-        .reply(200, {"address":"2NAeb4PGKKBEFdUt2seThoomcR4YR5SpbuK","chain":1,"index":80,"path":"/1/80","redeemScript":"52210306d7f5f0c559ff585f215c54d769f3fa9460193e334d16c162b97d1d06c812f82103798fb98f249f00e93523cb6d60102ac9aed44288b1482b9d35b6d70d315ae4c621025d3bc26ba30510772f4404d00c5d907dbd17f7838a4facbf157e817fc6694f5053ae"});
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=112000000&minSize=0&instant=false&targetWalletUnspents=50')
+      .reply(200, {"unspents":[{"tx_hash":"e221a92abd3b446787550d7c34954b76a4fb49f5eb1091bdc9a9adabeed30de5","tx_output_n":0,"date":"2015-07-07T20:37:17.641Z","address":"2MvjLv8oyxrnYdTZ8zmmb1QE8uf16VVi4fZ","script":"a9142639ced1448d394e718ad6f51d4c427f1eb6622b87","value":56547875758,"blockHeight":498077,"wallet":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","redeemScript":"522102598ab55d2be39e124fec05bdcc5150e71363c7c41156c67f9fcdccd88b3961de21033cbe7d4b35f76bf777dd87557d19d06b50c3ec60f13e4dad5029b63b659399102102ee327f905a9eb37ea806172d6432fce61e0fe63c2b2999266d261d188f0a430853ae","chainPath":"/1/105","isChange":true,"confirmations":224521,"instant":false}],"pendingTransactions":false,"count":1,"total":2});
 
       nock('https://test.bitgo.com:443')
-        .post('/api/v1/tx/send')
-        .reply(200, {"transaction":"aaa","transactionHash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6"});
+      .persist()
+      .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1,"validate":true})
+      .reply(200, {"address":"2N3f8xnRKc3Xxo4ygoHXZm6fbNXrT3j3Vfd","chain":1,"index":174,"path":"/1/174","redeemScript":"522102404170c469b0f6669386b30ff2e0e24ae11a02c6086aa15aa6832f2d6b371ec821038dbf33324a79aacc21007b95e9bf9c90b27fb4e6dffb78856c7eac31e93295122102f98e6e2bedf90d39034ccf17be4f5eca395fb0b1e2f536ef4bc4ddc5b9f9ada453ae"});
+
+      nock('https://test.bitgo.com:443')
+      .post('/api/v1/tx/send')
+      .reply(200, {"transaction":"bbb","transactionHash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","instant":false});
 
       return callRPC('sendtoaddress', '2N3So1bs9fuLeA3MrsBGPmkaYMXGWQn1HWG', 1.11, 'this one goes to eleven')
       .then(function(result) {
@@ -1025,7 +1030,19 @@ describe('BitGoD', function() {
 
     it('sendtoaddress success with instant', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?instant=true&target=113000000')
+      .get('/api/v1/instant/fee?amount=112000000&wallet=2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+      .reply(200, {"amount":112000000, "feeRate": 0.001, "fee":100000});
+
+      nock('https://test.bitgo.com:443')
+      .post('/api/v1/instant/feeaddress')
+      .reply(200, {"address":'2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc'});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=113100000&minSize=0&instant=true&targetWalletUnspents=50')
       .reply(200, {"unspents":[{"confirmations":228,"instant":true,"address":"2N2XYoQKXQGUXJUG7AvjA1LAGWzf65RcBHG","tx_hash":"ed426d37e56919485bec45c61043596781c09af0e9637998fcace7f59631c5ae","tx_output_n":0,"value":10000000000,"script":"a91465cf7dc1dc237ad59225140773994a747674e42387","redeemScript":"5221021971b4d7c5d919e2655134ac12daa755cd1d6a14996c5b272de24178f3649e952103f8bb35d209e20c1f64f9f2c5686efbcb212a504d3c5ee65e9623187c03009a9321036d051911592ef2a7a72bd53c767d1e57f260c7627a8115d6204d9f33c7dbcc7b53ae","chainPath":"/0/27"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
@@ -1094,8 +1111,12 @@ describe('BitGoD', function() {
 
     it('sendmany insufficient funds', function() {
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000&minSize=0&instant=false&targetWalletUnspents=50')
         .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
 
       return callRPC('sendmany', "", recipients, 3)
       .then(expectError, function(err) {
@@ -1106,16 +1127,21 @@ describe('BitGoD', function() {
 
     it('sendmany success (recipients dictionary)', function() {
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000&minSize=0&instant=false&targetWalletUnspents=50')
         .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
+        .persist()
         .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
         .reply(200, {"address":"2N5p9bXC4poJEb5jNcbu2BxuNeSn2qbEtpo","chain":1,"index":82,"path":"/1/82","redeemScript":"52210389f7e8e63adfcaa99b11523cbbd9df20ba6ff1a1ff8a2a68e27cb3e8bf21c5172103025ca7a7efedf5d3b544d7f87ee86cb0e1287dea9b5f2d98696d6c555a2dc8a021032d488227abffbd9a10a771bdc8ac469cc6f136a054b83dc826a3e252656cbc0653ae"});
 
       nock('https://test.bitgo.com:443')
         .post('/api/v1/tx/send')
         .reply(200, {"transaction":"0000","transactionHash":"31b74078116169c64a304bbf593cbe68027ab12a8b274c53a5c367cda3f8898f"});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
 
       return callRPC('sendmany', "", recipients)
       .then(function(result) {
@@ -1130,10 +1156,15 @@ describe('BitGoD', function() {
       ];
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=301000000&minSize=0&instant=false&targetWalletUnspents=50')
       .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
+
+      nock('https://test.bitgo.com:443')
+      .persist()
       .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
       .reply(200, {"address":"2N5p9bXC4poJEb5jNcbu2BxuNeSn2qbEtpo","chain":1,"index":82,"path":"/1/82","redeemScript":"52210389f7e8e63adfcaa99b11523cbbd9df20ba6ff1a1ff8a2a68e27cb3e8bf21c5172103025ca7a7efedf5d3b544d7f87ee86cb0e1287dea9b5f2d98696d6c555a2dc8a021032d488227abffbd9a10a771bdc8ac469cc6f136a054b83dc826a3e252656cbc0653ae"});
 
@@ -1154,10 +1185,23 @@ describe('BitGoD', function() {
       ];
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?instant=true&target=801000000')
+      .get('/api/v1/instant/fee?amount=800000000&wallet=2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
+      .reply(200, {"amount":800000000, "feeRate": 0.001, "fee":800000});
+
+      nock('https://test.bitgo.com:443')
+      .post('/api/v1/instant/feeaddress')
+      .reply(200, {"address":'2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc'});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":2,"confidence":85,"multiplier":1});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=801800000&minSize=0&instant=true&targetWalletUnspents=50')
       .reply(200, {"unspents":[{"confirmations":1,"instant":true,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
+      .persist()
       .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
       .reply(200, {"address":"2N5p9bXC4poJEb5jNcbu2BxuNeSn2qbEtpo","chain":1,"index":82,"path":"/1/82","redeemScript":"52210389f7e8e63adfcaa99b11523cbbd9df20ba6ff1a1ff8a2a68e27cb3e8bf21c5172103025ca7a7efedf5d3b544d7f87ee86cb0e1287dea9b5f2d98696d6c555a2dc8a021032d488227abffbd9a10a771bdc8ac469cc6f136a054b83dc826a3e252656cbc0653ae"});
 
@@ -1184,7 +1228,7 @@ describe('BitGoD', function() {
 
     it('getinfo', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/tx/fee?numBlocks=2')
+      .get('/api/v1/tx/fee?version=12&numBlocks=2')
       .reply(200, {"feePerKb":20000,"numBlocks":2});
 
       nock('https://test.bitgo.com:443')
@@ -1244,7 +1288,7 @@ describe('BitGoD', function() {
 
     it('getinfo', function () {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/tx/fee?numBlocks=4')
+      .get('/api/v1/tx/fee?version=12&numBlocks=4')
       .reply(200, {"feePerKb": 15608, "numBlocks": 4});
 
       nock('https://test.bitgo.com:443')
@@ -1304,16 +1348,21 @@ describe('BitGoD', function() {
 
 
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=101000000')
+        .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=101000000&minSize=0&instant=false&targetWalletUnspents=50')
         .reply(200, {"unspents":[{"confirmations":0,"address":"2NEgkNLZcU9c9usDFTZ5c4YffCWA7gR3GMQ","tx_hash":"83b4d9cc64eb494659daa4fe244f3152d05100629793a4ff5fbb71a5bce110a4","tx_output_n":1,"value":71440985758,"script":"a914eb2e66914b73199857f669ba96d2f105d59f4b2387","redeemScript":"5221030f9653fee93fc9cd9f01d0e5af17d0c5dcc02babae2abc605eb64fc69ecdb2482102a2cf52c0addb5ae6587ddf275c6b32dac6265f66616a0fb00ff23ea4b11b681a21032b6f31e70d87fdba586e149bc6d78dde8814e529259a4a85314335d54c8dd5e453ae","chainPath":"/1/84"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
+        .persist()
         .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
         .reply(200, {"address":"2N4Jxq3Z4GJoPucrgghFm75R8bLv8q1GTD3","chain":1,"index":86,"path":"/1/86","redeemScript":"5221025f9015b8ab25457a36cda1cfeef40af9210ebfc0ac9ee014e38a72100df1f4dc210367718564ea653156e5711ccb6d438d4e571dc35fb25990cb88bc894af96682122102c796b0baf1b5d11c3a2cbeed01158dd3aec81ea33c213555c94c24ce39fcf14453ae"});
 
       nock('https://test.bitgo.com:443')
         .post('/api/v1/tx/send')
         .reply(403, {"error":"wallet is frozen, cannot spend"});
+
+      nock('https://test.bitgo.com:443')
+      .get('/api/v1/tx/fee?version=12&numBlocks=4&maxFee=100000')
+      .reply(200, {"feePerKb":62868,"numBlocks":4,"confidence":85,"multiplier":1});
 
       return callRPC('sendmany', "", {'2N3So1bs9fuLeA3MrsBGPmkaYMXGWQn1HWG': 1}, 0, 'frozen')
       .then(expectError, function(err) {
@@ -1338,24 +1387,25 @@ describe('BitGoD', function() {
 
     it('cannot send after walletlock', function() {
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/tx/fee?numBlocks=4')
-      .reply(200, {"feePerKb": 20000, "numBlocks": 2});
+      .get('/api/v1/tx/fee?version=12&numBlocks=4&maxFee=100000')
+      .reply(200, {"feePerKb": 20000, "numBlocks": 4});
 
       nock('https://test.bitgo.com:443')
         .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX')
         .reply(200, {"id":"2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX","label":"Test Wallet 1","isActive":true,"type":"safehd","freeze":{"time":"2015-01-19T19:42:04.212Z","expires":"2015-01-19T19:42:14.212Z"},"adminCount":1,"private":{"keychains":[{"xpub":"xpub661MyMwAqRbcEfREDmUVK3o5wekgo2kMd8P7tZK8zrDgB454cuVJsUN5XzzwmdFRwjooWmmj6oovEZLoa66iHMBqv9JurunU6qKuCvcpMDh","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcFSu5cKZMN8LdcTZ14ADiopVd6SpgCLhpENP2VXLZLcarfN1qwJYx8yuyp6QkmFWaYLk4LLDR5DMTWEMKb69UzhKXcxPP2XG","path":"/0/0"},{"xpub":"xpub661MyMwAqRbcGeVsWGCm1sagwUJS7AKJjW1GztdKx4wp1UP9xpNs5PKPqVF6xaX9jQX3Z2i6dT5oJycFEdthymPViwRAmrFggvASmbjWaeu","path":"/0/0"}]},"permissions":"admin,spend,view","admin":{},"spendingAccount":true,"confirmedBalance":81650985758,"balance":81350975758,"pendingApprovals":[],"unconfirmedReceives":null,"unconfirmedSends":null});
 
       nock('https://test.bitgo.com:443')
-      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=315000000')
+      .get('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/unspents?target=315000000&minSize=0&instant=false&targetWalletUnspents=50')
       .reply(200, {"unspents":[{"confirmations":1,"address":"2Mven9jcBoUHa1VQRZ9Jy8nffSqw8wKZQME","tx_hash":"65ab38cd15e980ac2e4337f08b84fb53fcd71e1f5d1bb114554ef43ee67617a6","tx_output_n":1,"value":9888990000,"script":"a914255ccaf2136ed07f8bf6377710c45bfc1e83ecdb87","redeemScript":"5221023386c28561433f727a66ecd952021717a657aa2676c3e9d0960b2cdebe9020822103aa1b8b73bcd211b8d007495da84deed00e41e27445af4beb5e0187a5b4665f71210251e6b6148fba4449d2c5825b338349afed6c7e05054caafc799888de879412ea53ae","chainPath":"/1/79"}],"pendingTransactions":false});
 
       nock('https://test.bitgo.com:443')
+      .persist()
       .post('/api/v1/wallet/2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX/address/1', {"chain":1, "validate":true})
       .reply(200, {"address":"2N4Jxq3Z4GJoPucrgghFm75R8bLv8q1GTD3","chain":1,"index":86,"path":"/1/86","redeemScript":"5221025f9015b8ab25457a36cda1cfeef40af9210ebfc0ac9ee014e38a72100df1f4dc210367718564ea653156e5711ccb6d438d4e571dc35fb25990cb88bc894af96682122102c796b0baf1b5d11c3a2cbeed01158dd3aec81ea33c213555c94c24ce39fcf14453ae"});
 
       return callRPC('sendtoaddress', '2N3So1bs9fuLeA3MrsBGPmkaYMXGWQn1HWG', 3.14, 'have some pi')
       .then(expectError, function(err) {
-        err.code.should.equal(-13);
+        err.code.should.equal(-10600);
         err.message.should.match(/Please use walletpassphrase or setkeychain first/);
       });
     });
