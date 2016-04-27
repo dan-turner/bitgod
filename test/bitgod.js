@@ -11,7 +11,7 @@ var nock = require('nock');
 var pjson = require('../package.json');
 var _ = require('lodash');
 var results = require('./results');
-var bitcoin = require('bitcoinjs-lib');
+var bitcoin = require('bitgo').bitcoin;
 
 var BitGoD = require('../src/bitgod');
 

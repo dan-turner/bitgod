@@ -4,7 +4,7 @@
 var ArgumentParser = require('argparse').ArgumentParser;
 var assert = require('assert');
 var bitgo = require('bitgo');
-var bitcoin = require('bitcoinjs-lib');
+var bitcoin = bitgo.bitcoin;
 var ini = require('ini');
 var rpc = require('json-rpc2');
 var Q = require('q');
@@ -487,7 +487,7 @@ BitGoD.prototype.handleValidateAddress = function(address) {
     return result;
   }
   result.address = address;
-  result.scriptPubKey = bitcoin.Address.fromBase58Check(address).toOutputScript().toHex();
+  result.scriptPubKey = bitcoin.address.toOutputScript(address, bitcoin.getNetwork()).toString('hex');
   // Missing fields for our own addresses (need API support):
   // ismine
   // iswatchonly
@@ -951,8 +951,7 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
       }
 
       // validate address
-      var network = bitcoin.networks[bitgo.getNetwork()];
-      var address = bitcoin.Address.fromOutputScript(txout.script, network).toBase58Check();
+      var address = bitcoin.address.fromOutputScript(txout.script, bitcoin.getNetwork());
       if (o.address !== address) {
         throwValidationError(o, 'Address mismatch', o.address, address);
       }
