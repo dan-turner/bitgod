@@ -1251,6 +1251,26 @@ BitGoD.prototype.handleGetInstantGuarantee = function(id) {
   });
 };
 
+BitGoD.prototype.handleConsolidateUnspents = function(target, maxIterationCount){
+  this.ensureWallet();
+  target = this.getNumber(target);
+  maxIterationCount = this.getNumber(maxIterationCount);
+  return this.wallet.consolidateUnspents({
+    target: target,
+    maxIterationCount: maxIterationCount,
+    walletPassphrase: this.passphrase
+  });
+};
+
+BitGoD.prototype.handleFanOutUnspents = function(target){
+  this.ensureWallet();
+  target = this.getNumber(target);
+  return this.wallet.fanOutUnspents({
+    target: target,
+    walletPassphrase: this.passphrase
+  });
+};
+
 BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant, sequenceId) {
   this.ensureWallet();
   var self = this;
@@ -1607,6 +1627,8 @@ BitGoD.prototype.run = function(testArgString) {
     'freezewallet' : self.handleFreezeWallet,
     'settxconfirmtarget' : self.handleSetTxConfirmTarget,
     'getinstantguarantee' : self.handleGetInstantGuarantee,
+    'consolidateunspents' : self.handleConsolidateUnspents,
+    'fanoutunspents': self.handleFanOutUnspents,
     'gettransactionbysequenceid' : self.handleGetTransactionBySequenceId
   };
 
