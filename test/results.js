@@ -459,6 +459,130 @@ exports.txList3 = [ { account: '',
     fee: -0.0001 }
 ];
 
+exports.txList4 = [
+  {
+    "account": "",
+    "address": "2MvpZhq6zUu3UARdJKZH7TTfqHJ3Ec1YAjv",
+    "category": "send",
+    "amount": -1,
+    "vout": 2,
+    "confirmations": 26,
+    "blockhash": "0000000000003c222061ee885d97de51f7edd1e2d110c1fb3470ce39a23573bc",
+    "txid": "1a11c6e3ffbe5965353f7a7289af7d2ae85e3ca1c45a9c445e5d04c92b0bb8aa",
+    "time": 1462839593.925,
+    "timereceived": 1462839593.925,
+    "instant": false,
+    "height": 827952,
+    "satoshis": 100000000,
+    "fee": -0.00016449
+  },
+  {
+    "account": "",
+    "address": "2MtepahRn4qTihhTvUuGTYUyUBkQZzaVBG3",
+    "category": "send",
+    "amount": -2,
+    "vout": 1,
+    "confirmations": 26,
+    "blockhash": "0000000000003c222061ee885d97de51f7edd1e2d110c1fb3470ce39a23573bc",
+    "txid": "1a11c6e3ffbe5965353f7a7289af7d2ae85e3ca1c45a9c445e5d04c92b0bb8aa",
+    "time": 1462839593.925,
+    "timereceived": 1462839593.925,
+    "instant": false,
+    "height": 827952,
+    "satoshis": 200000000,
+    "fee": -0.00016449,
+    "sentTravelInfo": {
+      "id": "5731292a6dcfbe6006bdd5f5ef98d502",
+      "date": "2016-05-10T00:19:54.609Z",
+      "fromEnterpriseId": "5446a0bfd1a9cea1fa2f34cc63f53529",
+      "fromEnterprise": "BitGo",
+      "toEnterpriseId": "5578ebc76eb47487743b903166e6543a",
+      "transactionId": "1a11c6e3ffbe5965353f7a7289af7d2ae85e3ca1c45a9c445e5d04c92b0bb8aa",
+      "outputIndex": 1,
+      "fromWallet": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "toAddress": "2MtepahRn4qTihhTvUuGTYUyUBkQZzaVBG3",
+      "amount": 200000000,
+      "fromPubKey": "030a1cae6903807ae0c700783a261a5eeccafc45601aabf02c6dc89b6b0e9ba5d7",
+      "toPubKey": "02b6909eef9999410a2db6e5972b4d33f0803c818478bbac0e65df1626acd88f31",
+      "encryptedTravelInfo": "{\"iv\":\"QZ9FOgAlV6WSej7JrUrJQw==\",\"v\":1,\"iter\":1000,\"ks\":128,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"1vtvJHfIRmY=\",\"ct\":\"ZCbKt3KhaJUiGgYzxCXMt/gXo0wvv0BZdraDU7zlFNrYK8dV+Qdq/by7pyFzxL2uYpJxmjw4kl+JgzlTP+n0gDZMdJWxLpzyB7rYqRyQlqfJ4x6pIDLM5+Som7Rx+iMaga/cYYmipQEyNC4uEIhB4AB3X/waEq66zTFegmH1uO4J5HRaN5Y4R7GeNOSnfpbFQDZa0+EViidBNyIigjAz6ITtIZQKvkoIRsvPI4JXerP+ymmenOM+wHCaz9Cz6JVM0rlfdLWVICpmltepYqTrfB7nhdElgpyNT7GSkFzVXRW3oiQH0+vPWLloe1RjMB67iZObTuSM3PTYl+t1TFiCrKd/oYUppj1IYW06co0=\"}"
+    }
+  },
+  {
+    "account": "",
+    "address": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+    "category": "receive",
+    "amount": 1.5,
+    "vout": 0,
+    "confirmations": 14,
+    "blockhash": "0000000000002e96f9814dcaa298db38af975b96ef31413df8542f3e40c24f20",
+    "txid": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+    "time": 1462840807.973,
+    "timereceived": 1462840807.973,
+    "instant": false,
+    "height": 827964,
+    "satoshis": 150000000,
+    "receivedTravelInfo": {
+      "id": "57312de9303f0c6206b1976dc1f70943",
+      "date": "2016-05-10T00:40:09.791Z",
+      "fromEnterpriseId": "5578ebc76eb47487743b903166e6543a",
+      "fromEnterprise": "SDKTest",
+      "toEnterpriseId": "5446a0bfd1a9cea1fa2f34cc63f53529",
+      "transactionId": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+      "outputIndex": 0,
+      "toWallet": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "toAddress": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "amount": 150000000,
+      "fromPubKey": "03bc8be57b577ff8eb6b5fe38139ccbecbba5c2abb624d621518dd9a207e9d0ac6",
+      "toPubKey": "02b711627f6d93e2e6db8a63b02e04665dbdb8145e1824d39fab08821ff47c13fc",
+      "toPubKeyPath": "/1337/267166201",
+      "encryptedTravelInfo": "{\"iv\":\"kie2MxJLfTtGDdYrEjBAkw==\",\"v\":1,\"iter\":1000,\"ks\":128,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"+A1CEBiGXSw=\",\"ct\":\"poyQzSOb1jWwxS6boIUXuML58gGPRdm8uGOLDe3ppWR1if7raKWC9Yb1Eq1h6LljzgEQEROa+KrVQ9ZFD70BfQDehuzTGH67PP6IEp9MbAqfFKZCdwT2B3hQuLrKZ090Vx6118dhuHOHMNdOAZRy2+sxJJH7M3T1xeCjskuabB7t0LKlCRfHLE+U//avVDztSeqJIPs02Z8MSDC5rFRtXkAHjdjsq5LfyIy9QzEPkGLBd+lV2LRCt45jCKGlcNeCw51BGD9HOMXSPg3g2TcLl0iFLNqpA2ad//FCUrTtceKQ0SiWZMpGlRgcmoAB\"}"
+    }
+  }
+];
+
+exports.txList5 = [
+  {
+    "account": "",
+    "address": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+    "category": "receive",
+    "amount": 1.5,
+    "vout": 0,
+    "confirmations": 11,
+    "blockhash": "0000000000002e96f9814dcaa298db38af975b96ef31413df8542f3e40c24f20",
+    "txid": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+    "time": 1462840807.973,
+    "timereceived": 1462840807.973,
+    "instant": false,
+    "height": 827964,
+    "satoshis": 150000000,
+    "receivedTravelInfo": {
+      "id": "57312de9303f0c6206b1976dc1f70943",
+      "date": "2016-05-10T00:40:09.791Z",
+      "fromEnterpriseId": "5578ebc76eb47487743b903166e6543a",
+      "fromEnterprise": "SDKTest",
+      "toEnterpriseId": "5446a0bfd1a9cea1fa2f34cc63f53529",
+      "transactionId": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+      "outputIndex": 0,
+      "toWallet": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "toAddress": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "amount": 150000000,
+      "fromPubKey": "03bc8be57b577ff8eb6b5fe38139ccbecbba5c2abb624d621518dd9a207e9d0ac6",
+      "toPubKey": "02b711627f6d93e2e6db8a63b02e04665dbdb8145e1824d39fab08821ff47c13fc",
+      "toPubKeyPath": "/1337/267166201",
+      "encryptedTravelInfo": "{\"iv\":\"kie2MxJLfTtGDdYrEjBAkw==\",\"v\":1,\"iter\":1000,\"ks\":128,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"+A1CEBiGXSw=\",\"ct\":\"poyQzSOb1jWwxS6boIUXuML58gGPRdm8uGOLDe3ppWR1if7raKWC9Yb1Eq1h6LljzgEQEROa+KrVQ9ZFD70BfQDehuzTGH67PP6IEp9MbAqfFKZCdwT2B3hQuLrKZ090Vx6118dhuHOHMNdOAZRy2+sxJJH7M3T1xeCjskuabB7t0LKlCRfHLE+U//avVDztSeqJIPs02Z8MSDC5rFRtXkAHjdjsq5LfyIy9QzEPkGLBd+lV2LRCt45jCKGlcNeCw51BGD9HOMXSPg3g2TcLl0iFLNqpA2ad//FCUrTtceKQ0SiWZMpGlRgcmoAB\"}",
+      "travelInfo": {
+        "fromUserName": "John Galt",
+        "fromUserAccount": "johngalt",
+        "fromUserAddress": "1 Dagny Ln, Galts Gulch, CO",
+        "toUserName": "Dagny Taggart",
+        "toUserAccount": "dagny",
+        "toUserAddress": "1 Taggart Plaza, New York, NY",
+        "toEnterprise": "BitGo"
+      }
+    }
+  }
+];
+
 exports.tx1 = {
   amount: 34960000,
   blockhash: '00000000f56c5d3fe7719e9e2b44ea000d0ff76e1d18048be3943ad876f5bd61',
@@ -511,6 +635,52 @@ exports.tx2 = {
   time: 1424256552,
   timereceived: 1424256552,
   txid: 'c1cdd3653d6e7e2ce43e88d3a44f95d550f1fa800c25139d60125c668e563dfe'
+};
+
+exports.tx3 = {
+  "amount": 150000000,
+  "confirmations": 14,
+  "blockhash": "0000000000002e96f9814dcaa298db38af975b96ef31413df8542f3e40c24f20",
+  "txid": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+  "time": 1462840807.973,
+  "timereceived": 1462840807.973,
+  "hex": "0100000007ac9ca23d64298ecea98942ce85b12a9d330232898fb32582f0986ba0ba4bb23800000000fdfe0000483045022100fe4a8f3672d61d7808ec42d83092b6f7103116a2331f314437dc45a169c832f7022026a6a1ba59f49d8f0decbc607e15b1ab6025c394d6185fc1f9e70eded50d07d9014830450221009024c4e204000a2fc64bb4cb2240a30f76472bbd5386a8958f78367a8521ea6b0220341de0741558f42520d5208483128b1ac214fcb1d0380e70bfd93b12711c6930014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff190edb6a9e2f5fa750be6ced93969cdc24796cb8fce7adb50c0a095f7ede549c01000000fdfd0000483045022100f7002dac53c5e484c3e0ecae7e48068a3bdc4ec6e1ce20cfdc09f623579a49d002205a2ed497e1292c7156cacf28eff8a31fb46594b8aa976385e268a6109221ce880147304402203733c661d4f0b16a38ed785998679885a31ae2ef2a3343fe17a081cdf46599750220104827fe4ef81145685c676fd6347e484131be7c64a5b14c793327996674c15a014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aefffffffff3ea59620c45ebcdf4449df497804e117bb630d185d35ef4a5227c7a0c5473f701000000fdfd000047304402206fa24c3ce9ea3064957902e592a5dc2085790eae29d04c0b2882937fa394c5d4022064f29604419999b634d2ac1032782790a92c065597a0acfd0c65af064d3501040148304502210091ff208ea49986a061a269b87c13cdf386597fce64f901b241dbfb02b7cb103602203ad64ae25773a8eb36ec1fd4ff68ba381103cf2be47a798db2b9673a8cb4f9ea014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff67cf0b6a0e2a8e3650aa1b1a5680782d24db6bc6a983ed75b3b7e7a55c26f04001000000fdfd000047304402207431804669663ddfe59154f55741a3928b3e2e94f5c517abe8a1fb68af3311d502204923b1a2484e43c873e8189970e81be4092a76e06586252853a3b0cf3acfa33f01483045022100f565a1be95e58188c408b58d73b8450bd810f10658ef7d876642974d5baedb1e0220794e565b6737ef8ffd0ee573d493108bfd0b442e7f8295a4ba2f21b43fa66d44014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff9c6c48594164e23dfb63798ed26214bdcf21266aaadf6442fa8654777863c9bd01000000fdfe00004830450221009a96800e5b4ab65c9975008ba6cfc015430b917579d03591c347e1c0f3b5193802203e22c40350cc8a8f21c22c13fe170d78f243cb14238f8687638dba4b163dbd4501483045022100ac117f682594600cafeb0b5a1efeac75b345bf2c7c0efe7dd30dd2081d08a23702206945c14464092391422fdfdb771eae4b3102a87ff80fdd455f664e6a74bd02bb014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff68e64b1e32eb160ddf5b8932bb17e474c578e0fbf356084b425c2c2c591ad9af01000000fdfe0000483045022100860c88a965ee59e229f35871e7d5acd4794e6b2e28488f4fabfb36d3d5587aed02205f26fcf2cdd8a2e2938683e1277212b68dd4c574817a66babc38c7626addc2ff01483045022100ceee04dc82b9b527ef348118ee73cd9fbdec554d7d8471c3b7d6a89d7963e5f4022014db721cf352497a1f831926e66c9f3c0e1d8e414175e0bb50dde9e12a5912f4014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff71fb722487fecd655b5cf193afd5449096f17b0ca43f4140cd671f12627414a901000000fc0047304402204402a939f5b4ddf5167b35e341ffc962f2ccda7c44a199f43fe71f2f0d27f78a022077c2452f027d95e00c3dd67819bd53332e77e70789d9fcc13d19a2150c0d8c0e0147304402201a78cfbcf8342ab6ed28824295b1585550698306c7e1466e8338e6418cc07b8f022008777809e793f7785b5769c03f1a6f50002b2bf2002b26574f6893ca5aad80d2014c69522103708df98003fd9d9d48d9a61c9bf98945b4b340e0349cbeac5802b4b16c585e902102a592ac281671ada19bb7a2af4579f2efe410c72acbc6269e0031c86cab26ba67210279d8c11ab4c3c4b94619a4e18e74bf82525d92423dd11e2b59a4caff5647982153aeffffffff0380d1f0080000000017a914b238b35dd6399962fbc746f467774c2cf4966a5d87db04f9070000000017a914ddf2e2ccc5231a3d7fbe49b38fc88d2a5e949cae87f04902000000000017a914329f60e693257933855afcac7e6f91921c7a7e8a8700000000",
+  "instant": false,
+  "receivedTravelInfo": [
+    {
+      "id": "57312de9303f0c6206b1976dc1f70943",
+      "date": "2016-05-10T00:40:09.791Z",
+      "fromEnterpriseId": "5578ebc76eb47487743b903166e6543a",
+      "fromEnterprise": "SDKTest",
+      "toEnterpriseId": "5446a0bfd1a9cea1fa2f34cc63f53529",
+      "transactionId": "31e0e7d688346c8c86fe16dd5b7f1e7860fbbcc81bb23cc62100f2bf72b201e0",
+      "outputIndex": 0,
+      "toWallet": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "toAddress": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "amount": 150000000,
+      "fromPubKey": "03bc8be57b577ff8eb6b5fe38139ccbecbba5c2abb624d621518dd9a207e9d0ac6",
+      "toPubKey": "02b711627f6d93e2e6db8a63b02e04665dbdb8145e1824d39fab08821ff47c13fc",
+      "toPubKeyPath": "/1337/267166201",
+      "encryptedTravelInfo": "{\"iv\":\"kie2MxJLfTtGDdYrEjBAkw==\",\"v\":1,\"iter\":1000,\"ks\":128,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"+A1CEBiGXSw=\",\"ct\":\"poyQzSOb1jWwxS6boIUXuML58gGPRdm8uGOLDe3ppWR1if7raKWC9Yb1Eq1h6LljzgEQEROa+KrVQ9ZFD70BfQDehuzTGH67PP6IEp9MbAqfFKZCdwT2B3hQuLrKZ090Vx6118dhuHOHMNdOAZRy2+sxJJH7M3T1xeCjskuabB7t0LKlCRfHLE+U//avVDztSeqJIPs02Z8MSDC5rFRtXkAHjdjsq5LfyIy9QzEPkGLBd+lV2LRCt45jCKGlcNeCw51BGD9HOMXSPg3g2TcLl0iFLNqpA2ad//FCUrTtceKQ0SiWZMpGlRgcmoAB\"}",
+      "travelInfo": {
+        "fromUserName": "John Galt",
+        "fromUserAccount": "johngalt",
+        "fromUserAddress": "1 Dagny Ln, Galts Gulch, CO",
+        "toUserName": "Dagny Taggart",
+        "toUserAccount": "dagny",
+        "toUserAddress": "1 Taggart Plaza, New York, NY",
+        "toEnterprise": "BitGo"
+      }
+    }
+  ],
+  "details": [
+    {
+      "address": "2N9VaC4SDRNNnEy6G8zLF8gnHgkY6LV9PsX",
+      "category": "receive",
+      "amount": 1.5,
+      "vout": 0
+    }
+  ]
 };
 
 exports.sinceBlock1 = { transactions:

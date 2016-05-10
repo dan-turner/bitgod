@@ -768,7 +768,15 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   });
 };
 
-BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList) {
+/**
+ * Take a transaction object and split it into bitcoind-style outputs, adding
+ * them to a list. If keychain is provided, and outputs have receivedTravelInfo
+ * attached, the travelInfo will be decrypted.
+ * @param   {Object} tx         transaction
+ * @param   {Array} outputList
+ * @param   {Object} keychain   a BitGo private keychain
+ */
+BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList, keychain) {
   var self = this;
 
   outputList = outputList || [];
@@ -781,6 +789,13 @@ BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList) {
   });
 
   tx.amount = 0;
+
+  if (keychain && tx.receivedTravelInfo && tx.receivedTravelInfo.length) {
+    tx = this.bitgo.travelRule().decryptReceivedTravelInfo({ tx: tx, keychain: keychain });
+  }
+
+  var receivedTravelInfoByIndex = _.indexBy(tx.receivedTravelInfo, 'outputIndex');
+  var sentTravelInfoByIndex = _.indexBy(tx.sentTravelInfo, 'outputIndex');
 
   var outputCount = tx.outputs.length;
   tx.outputs.forEach(function(output, outputIndex) {
@@ -817,6 +832,12 @@ BitGoD.prototype.processTxAndAddOutputsToList = function(tx, outputList) {
     };
     if (tx.netValue < 0) {
       record.fee = self.toBTC(-tx.fee);
+    }
+    if (sentTravelInfoByIndex[outputIndex]) {
+      record.sentTravelInfo = sentTravelInfoByIndex[outputIndex];
+    }
+    if (receivedTravelInfoByIndex[outputIndex]) {
+      record.receivedTravelInfo = receivedTravelInfoByIndex[outputIndex];
     }
     outputList.push(record);
   });
@@ -1003,9 +1024,10 @@ BitGoD.prototype.validateTxOutputs = function(outputs) {
  * @param count The number of transactions to return
  * @param from The number of transactions to skip
  * @param minHeight Only return transactions from a block with minHeight and above
+ * @param decryptTravelInfo  Decrypt received travel info if it exists
  * @returns {*}
  */
-BitGoD.prototype.handleListTransactions = function(account, count, from, minHeight) {
+BitGoD.prototype.handleListTransactions = function(account, count, from, minHeight, decryptTravelInfo) {
   this.ensureWallet();
   var self = this;
 
@@ -1020,12 +1042,14 @@ BitGoD.prototype.handleListTransactions = function(account, count, from, minHeig
     throw this.error('Negative from', -8);
   }
 
+  var keychain = decryptTravelInfo ? this.getSigningKeychain() : undefined;
+
   var outputList = [];
   var getTransactionsInternal = function(skip) {
     return self.wallet.transactions({ limit: 500, skip: skip, minHeight: minHeight })
     .then(function(res) {
       res.transactions.every(function(tx) {
-        self.processTxAndAddOutputsToList(tx, outputList);
+        self.processTxAndAddOutputsToList(tx, outputList, keychain);
         return (outputList.length < count + from);
       });
 
@@ -1062,6 +1086,7 @@ BitGoD.prototype.handleListTransactions = function(account, count, from, minHeig
     }
     return self.validateTxOutputs(outputs);
   });
+
 };
 
 BitGoD.prototype.handleListSinceBlock = function(blockHash, targetConfirms) {
@@ -1149,16 +1174,18 @@ BitGoD.prototype.handleGetReceivedByAddress = function(address, minConfirms) {
   });
 };
 
-BitGoD.prototype.handleGetTransaction = function(txid) {
+BitGoD.prototype.handleGetTransaction = function(txid, decryptTravelInfo) {
   this.ensureWallet();
   var self = this;
 
   var outputList = [];
   var tx;
+
   return self.wallet.getTransaction({ id: txid })
   .then(function(res) {
     tx = res;
-    return self.processTxAndAddOutputsToList(tx, outputList);
+    var keychain = decryptTravelInfo ? self.getSigningKeychain() : undefined;
+    return self.processTxAndAddOutputsToList(tx, outputList, keychain);
   })
   .then(function(outputs) {
     if (!self.validate) {
@@ -1179,7 +1206,9 @@ BitGoD.prototype.handleGetTransaction = function(txid) {
       timereceived: new Date(tx.date).getTime() / 1000,
       hex: tx.hex,
       instant: tx.instant,
-      instantId: tx.instantId
+      instantId: tx.instantId,
+      receivedTravelInfo: tx.receivedTravelInfo,
+      sentTravelInfo: tx.sentTravelInfo
     };
 
     result.details = [];
@@ -1329,10 +1358,10 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
 
   if (recipients instanceof Array) {
     recipients.forEach(function(recipient) {
-      if (!recipient['address'] || !recipient['amount']) {
-        throw self.error('Incorrect sendmany input - address ' + recipient['address'] + ', amount ' + recipient['amount'], -1);
+      if (!recipient.address || !recipient.amount) {
+        throw self.error('Incorrect sendmany input - address ' + recipient.address + ', amount ' + recipient.amount, -1);
       }
-      recipient['amount'] = Math.round(Number(recipient['amount']) * 1e8);
+      recipient.amount = Math.round(Number(recipient.amount) * 1e8);
     });
   } else {
     Object.keys(recipients).forEach(function (destinationAddress) {
@@ -1342,25 +1371,14 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
 
   return this.getWallet()
   .then(function(wallet) {
-    return self.wallet.createTransaction({
+    return self.wallet.sendMany({
       minConfirms: minConfirms,
       recipients: recipients,
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
       instant: !!instant,
-      targetWalletUnspents: self.minUnspentsTarget
-    });
-  })
-  .then(function(result) {
-    result.keychain = self.getSigningKeychain();
-    return self.wallet.signTransaction(result);
-  })
-  .then(function(tx) {
-    return self.wallet.sendTransaction({
-      tx: tx.tx,
-      message: comment,
-      instant: !!instant,
-      sequenceId: sequenceId
+      targetWalletUnspents: self.minUnspentsTarget,
+      keychain: self.getSigningKeychain()
     });
   })
   .then(function(result) {
@@ -1579,7 +1597,7 @@ BitGoD.prototype.run = function(testArgString) {
 
   self.masqueradeAccount = config.masqueradeaccount;
 
-  self.minUnspentsTarget = 42; // Good initial default for a bitgod wallet
+  self.minUnspentsTarget = 20; // Good initial default for a bitgod wallet
   if (config.minunspentstarget) {
     var parsedMinUnspentsTarget = parseInt(config.minunspentstarget);
     if (parsedMinUnspentsTarget === NaN) {
