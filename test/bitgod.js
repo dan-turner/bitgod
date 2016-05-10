@@ -1301,7 +1301,7 @@ describe('BitGoD', function() {
         .reply(200, {"fee":0});
 
       nock('https://test.bitgo.com:443')
-        .get('/api/v1/tx/fee')
+        .get('/api/v1/tx/fee?version=12&maxFee=100000')
         .reply(200, {"feePerKb":41435,"numBlocks":3,"confidence":95,"multiplier":1,"feeByBlockTarget":{"2":41435,"3":41435,"4":41435,"5":41435,"6":41435,"7":41435,"8":41435,"9":41435,"10":41435}});
 
       nock('https://test.bitgo.com:443')
