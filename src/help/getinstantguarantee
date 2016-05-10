@@ -1,0 +1,16 @@
+getinstantguarantee "instantId"
+
+Returns information about the BitGo Instant guarantee for a specific
+BitGo Instant transaction. Get the instantId from the result of a
+gettransaction or listtransactions command.
+
+Arguments:
+1. "instantId"      (string) the instantId of a BitGo Instant transaction
+
+Result:
+{}
+
+Examples:
+
+> bitcoin-cli getinstantguarantee 573251ae82cbe33108a25d73438423b0 
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getinstantguarantee", "params": ["573251ae82cbe33108a25d73438423b0"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

@@ -1,0 +1,3 @@
+getunconfirmedbalance
+
+Returns the wallet's total unconfirmed balance

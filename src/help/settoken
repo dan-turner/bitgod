@@ -1,0 +1,9 @@
+settoken "token"
+
+Arguments:
+1. "token"      (string) The BitGo access token to use for authentication
+
+Examples:
+
+> bitcoin-cli settoken 0258bb9ee2f3cf08a6adffadfed2e0e926a67b4e37c1814d111ae8add749f38b
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "settoken", "params": ["0258bb9ee2f3cf08a6adffadfed2e0e926a67b4e37c1814d111ae8add749f38b"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

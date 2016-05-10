@@ -197,12 +197,11 @@ BitGoD.prototype.setupProxy = function(config) {
   }
 
   var commandGroups = {
-    blockchain: 'getbestblockhash getblock getblockchaininfo getblockcount getblockhash getchaintips getdifficulty getmempoolinfo getrawmempool gettxout gettxoutsetinfo verifychain',
-    control: 'help',
+    blockchain: 'getbestblockhash getblock getblockchaininfo getblockcount getblockhash getchaintips getdifficulty getmempoolinfo getrawmempool gettxout gettxoutproof gettxoutsetinfo verifychain verifytxoutproof',
     mining: 'getmininginfo getnetworkhashps prioritisetransaction submitblock',
-    network: 'addnode getaddednodeinfo getconnectioncount getnettotals getnetworkinfo getpeerinfo ping',
-    tx: 'createrawtransaction decoderawtransaction decodescript getrawtransaction sendrawtransaction signrawtransaction',
-    util: 'createmultisig estimatefee estimatepriority verifymessage'
+    network: 'addnode clearbanned disconnectnode getaddednodeinfo getconnectioncount getnettotals getnetworkinfo getpeerinfo listbanned ping setban',
+    tx: 'createrawtransaction decoderawtransaction decodescript fundrawtransaction getrawtransaction sendrawtransaction signrawtransaction',
+    util: 'createmultisig estimatefee estimatepriority estimatesmartfee verifymessage'
   };
 
   var proxyPort = config.proxyport || (bitgo.getNetwork() === 'bitcoin' ? 8332 : 18332);
@@ -1448,20 +1447,41 @@ BitGoD.prototype.handleNotImplemented = function() {
   throw this.error('Not implemented', -32601);
 };
 
-BitGoD.prototype.handleHelp = function() {
-  var helpJSON = {};
-  helpJSON['Calls specific to BitGo'] = [];
-  _.forEach(this.bitgoSpecificMethods, function(value, key) {
-    helpJSON['Calls specific to BitGo'].push(key);
+BitGoD.prototype.handleHelp = function(command) {
+  var self = this;
+  if (command) {
+    if (this.help[command]) {
+      return this.help[command];
+    }
+    if (this.client) {
+      return this.callLocalMethod('help', [command]);
+    }
+    return 'help: unknown command: ' + command;
+  }
+
+  // Global help
+  return Q().then(function() {
+    if (self.client) {
+      return self.callLocalMethod('help', []);
+    }
+  })
+  .then(function(proxyHelp) {
+    proxyHelp = proxyHelp || '';
+    if (proxyHelp) {
+      var walletStart = proxyHelp.indexOf('== Wallet ==');
+      if (walletStart > 0) {
+        proxyHelp = proxyHelp.substr(0, walletStart);
+      }
+      var lines = proxyHelp.split('\n');
+      lines = lines.filter(function(line) {
+        var words = line.split(' ');
+        return (!words.length || !self.help[words[0]]);
+      });
+      proxyHelp = lines.join('\n');
+      proxyHelp = '*** START BITCOIND PROXIED COMMANDS *** \n\n' + proxyHelp + '*** END BITCOIND PROXIED COMMANDS ***\n\n';
+    }
+    return proxyHelp + self.help.bitgod;
   });
-
-  helpJSON['Traditional bitcoind calls'] = [];
-  _.forEach(this.traditionalBitcoindMethods, function(value, key) {
-    helpJSON['Traditional bitcoind calls'].push(key);
-  });
-
-  return helpJSON;
-
 };
 
 /**
@@ -1571,6 +1591,17 @@ BitGoD.prototype.run = function(testArgString) {
   if (config.logfile) {
     self.logger.add(winston.transports.File, { level: 'info', filename: config.logfile, timestamp: true, colorize: false, json: false });
     self.logger.remove(winston.transports.Console);
+  }
+
+  // Read in help
+  self.help = {};
+  try {
+    var helpFiles = fs.readdirSync(__dirname + '/help');
+    helpFiles.forEach(function(fileName) {
+      self.help[fileName] = fs.readFileSync(__dirname + '/help/' + fileName, 'utf8');
+    });
+  } catch (err) {
+    console.error('Failed loading help files: '+ err.message);
   }
 
   self.notImplemented = [];

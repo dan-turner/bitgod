@@ -1,0 +1,12 @@
+gettransactionbysequenceid "sequenceId"
+
+Get information about a transaction by its sequenceId. Sequence IDs are a very useful
+tool that allow you to ensure against duplicate sending of the same transaction.
+
+Arguments:
+1. "sequenceId"    (string) The sequence id
+
+
+Examples:
+> bitcoin-cli gettransactionbysequenceid "234asdkj23ae"
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettransactionbysequenceid", "params": ["234asdkj23ae"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

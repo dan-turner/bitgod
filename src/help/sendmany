@@ -1,0 +1,33 @@
+sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
+
+Send multiple times. Amounts are double-precision floating point numbers.
+
+Recipients may be specified either as an object map of address -> amount (as in bitcoind), or
+more flexibly as an array of objects. The array form allows producing multiple outputs to the
+same destination address, as well as attaching Travel Rule information if desired.
+
+Arguments:
+1. "fromaccount"         (string, required) DEPRECATED. The account to send the funds from. Should be "" for the default account
+2. "recipients"          (array or object, required)
+         OBJECT FORM:    { "ADDRESS1": amount1, "ADDRESS2": amount2, ... }
+         ARRAY FORM :    [ { "address": "ADDRESS1", "amount": amount1 }, { "address": "ADDRESS1", "amount": amount2, "travelInfo": {...} }, ... ]
+                         
+3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.
+4. "comment"             (string, optional) A comment
+5. "instant"             (boolean, optional, default=false) Send this transaction as BitGo Instant
+6. "sequenceId"          (string, optional) A client-provided sequence id, which must be unique within this wallet.
+
+Result:
+"transactionid"          (string) The transaction id for the send. Only 1 transaction is created regardless of 
+                                    the number of addresses.
+
+Examples:
+
+Send two amounts to two different addresses:
+> bitcoin-cli sendmany "" "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}"
+
+Send two amounts to two the same address using BitGoInstant, using minimum 1-confirm inputs, setting comment and sequence id
+> bitcoin-cli sendmany "" '[ {"address": "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", "amount":0.01, "address": "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", amount:0.02 }]" 1 "testing" true kj2d9sd32
+
+As a json rpc call
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendmany", "params": ["", "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}", 6, "testing"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

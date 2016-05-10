@@ -1,0 +1,34 @@
+gettransaction "txid" ( decryptTravelInfo )
+
+Get detailed information about in-wallet transaction <txid>
+
+Arguments:
+1. "txid"    (string, required) The transaction id
+2. "decryptTravelInfo"    (bool, optional, default=false) Whether to decrypt received Travel Rule info (requires active keychain)
+
+Result:
+{
+  "amount" : x.xxx,        (numeric) The transaction amount in BTC
+  "confirmations" : n,     (numeric) The number of confirmations
+  "blockhash" : "hash",  (string) The block hash
+  "txid" : "transactionid",   (string) The transaction id.
+  "time" : ttt,            (numeric) The transaction time in seconds since epoch (1 Jan 1970 GMT)
+  "timereceived" : ttt,    (numeric) The time received in seconds since epoch (1 Jan 1970 GMT)
+  "instant" : true|false   (boolean) 
+  "details" : [
+    {
+      "account" : "accountname",      (string) Either "" or masqueradeAccount, if set
+      "address" : "bitcoinaddress",   (string) The bitcoin address involved in the transaction
+      "category" : "send|receive",    (string) The category, either 'send' or 'receive'
+      "amount" : x.xxx,                 (numeric) The amount in BTC
+      "vout" : n,                       (numeric) the vout value
+    }
+    ,...
+  ],
+  "hex" : "data"         (string) Raw data for transaction
+}
+
+Examples:
+> bitcoin-cli gettransaction "1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+> bitcoin-cli gettransaction "1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d" true
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettransaction", "params": ["1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

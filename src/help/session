@@ -1,0 +1,35 @@
+session
+
+Returns information about the current authenticated session with BitGo.
+
+Result:
+{
+    "id" : "xxx",
+    "client" : "bitgo",
+    "user" : "yyy",
+    "scope" : [
+        "wallet_view_all",
+        "wallet_spend_all",
+        "openid",
+        "profile"
+    ],
+    "created" : "2016-04-19T20:28:30.027Z",
+    "expires" : "2111-11-08T20:28:30.026Z",
+    "ipRestrict" : [
+    ],
+    "origin" : "www.bitgo.com",
+    "label" : "My Dev Token",
+    "isExtensible" : false,
+    "unlock" : {
+        "time" : "2016-04-19T20:28:30.029Z",
+        "expires" : "2111-11-08T20:28:30.026Z",
+        "txValueLimit" : 2500000000,
+        "txValue" : 11505550,
+        "secondsRemaining" : 3013542098
+    }
+}
+
+Examples:
+
+> bitcoin-cli session 
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "session", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

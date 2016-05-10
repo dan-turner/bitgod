@@ -1,0 +1,15 @@
+freezewallet "seconds"
+
+The freezewallet command freezes all BitGo co-sigining on a wallet for the
+specified period of time. It should be used in case of a suspected breach.
+Until the freeze expires, there is no way to unfreeze the wallet without
+talking to BitGo.
+
+Arguments:
+1. "seconds"      (numeric) Number of seconds to freeze wallet
+
+Examples:
+
+Freeze the wallet for an hour
+> bitcoin-cli freezewallet 3600
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "freezewallet", "params": [3600] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

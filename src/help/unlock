@@ -1,0 +1,14 @@
+unlock "otpcode" ( seconds )
+
+The unlock command is only needed if not operating with an already-unlocked
+long-term token. It can be used to unlock a standard login token.
+
+Arguments:
+1. "otpcode"      (string) A BitGo 2-step verification code (Authy, GAuth or Yubikey)
+2. "seconds"      (numeric, optional, default=600) Number of seconds to unlock
+
+Examples:
+
+Unlock the token for an hour
+> bitcoin-cli otpcode 1234567 3600
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "unlock", "params": ["12345667", 3600] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

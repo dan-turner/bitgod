@@ -1,0 +1,10 @@
+lock 
+
+The lock command locks an unlocked token. Only unlocked tokens may be used
+to transact and do other sensitive operations. If using an unlocked long-term token,
+do not use this commmand.
+
+Examples:
+
+> bitcoin-cli lock
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "lock", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

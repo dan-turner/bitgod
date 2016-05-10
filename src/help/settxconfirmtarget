@@ -1,0 +1,16 @@
+settxconfirmtarget "numblocks"
+
+BitGo wallets set their fees dynamically using a target number of blocks to
+get the first confirm. It is by default set to 2. Use settxconfirmtarget to
+change this default.
+
+Note: If a static fee rate is set using settxfee, that will override block-based
+fee estimation.
+
+Arguments:
+1. "numblocks"      (numeric) number of blocks for confirm target
+
+Examples:
+
+> bitcoin-cli settxconfirmtarget 6
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "settxconfirmtarget", "params": [6] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

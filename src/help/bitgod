@@ -1,0 +1,33 @@
+== BitGoD ==
+estimatefee nblocks
+freezewallet "seconds"
+getaddressesbyaccount "account"
+getbalance ( "account" minconf )
+getinfo
+getinstantguarantee "instantId"
+getnewaddress
+getrawchangeaddress
+getreceivedbyaddress "bitcoinaddress" ( minconf )
+gettransaction "txid" ( decryptTravelInfo )
+gettransactionbysequenceid "sequenceId"
+getunconfirmedbalance
+getwalletinfo
+help ( "command" )
+listaccounts ( minconf )
+listsinceblock ( "blockhash" target-confirmations )
+listtransactions ( "account" count from minHeight decryptTravelInfo ))
+listunspent ( minconf maxconf ignoreConfirmsForChange )
+lock 
+sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" )
+sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
+sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId )
+session
+setkeychain "xprv"
+settoken "token"
+settxconfirmtarget "numblocks"
+settxfee amount
+setwallet "walletid"
+unlock "otpcode" ( seconds )
+validateaddress "bitcoinaddress"
+walletlock
+walletpassphrase "passphrase" timeout

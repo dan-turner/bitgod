@@ -1,0 +1,12 @@
+setwallet "walletid"
+
+BitGoD operates on a single BitGo wallet at a time. The current wallet must
+be set using the setwallet command.
+
+Arguments:
+1. "walletid"      (string) The ID of the BitGo wallet
+
+Examples:
+
+> bitcoin-cli setwallet 37EshpeY6pY3ayQLFC1LTFfDbEX7y6kXiR
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "setwallet", "params": ["37EshpeY6pY3ayQLFC1LTFfDbEX7y6kXiR"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

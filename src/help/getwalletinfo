@@ -1,0 +1,14 @@
+getwalletinfo
+Returns an object containing various wallet state info.
+
+Result:
+{
+  "walletversion": xxxxx,      (numeric) the wallet version
+  "balance": xxxxxxx,          (numeric) the total confirmed balance of the wallet in BTC
+  "unconfirmedbalance": xxx,   (numeric) the total unconfirmed balance of the wallet in BTC
+  "cansendinstant": true|false (boolean) can this wallet send instant transactions?
+}
+
+Examples:
+> bitcoin-cli getwalletinfo 
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getwalletinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

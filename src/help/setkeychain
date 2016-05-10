@@ -1,0 +1,14 @@
+setkeychain "xprv"
+
+Put the private keychain for a wallet in memory. This command is only needed if the wallet
+does not have an encrypted user key attached. Otherwise, it is sufficient to use the 
+walletpassphrase command.
+
+Arguments:
+1. "xprv"      (string) The BIP32 private key (xprv) for the wallet 
+                        (Wallet must be set, xprv must match)
+
+Examples:
+
+> bitcoin-cli setkeychain "xprv9s21ZrQH143K2L6zNVJpx5no7uz9NDR2eUmEhMWy4qyS7PWeSXrwARNQvhqSG9kv8cpJJMCWi2Cs3mb33Q5APBSk3muqiunDA8TLg6AEWDR"
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "setkeychain", "params": ["xprv9s21ZrQH143K2L6zNVJpx5no7uz9NDR2eUmEhMWy4qyS7PWeSXrwARNQvhqSG9kv8cpJJMCWi2Cs3mb33Q5APBSk3muqiunDA8TLg6AEWDR"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

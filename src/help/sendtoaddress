@@ -1,0 +1,21 @@
+sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId )
+
+Send an amount to a given address.
+
+Arguments:
+1. "bitcoinaddress"  (string, required) The bitcoin address to send to.
+2. "amount"      (numeric or string, required) The amount in BTC to send. eg 0.1
+3. "comment"     (string, optional) A comment used to store what the transaction is for. 
+                             This is not part of the transaction, just kept in your wallet.
+4. "comment-to"  (string, optional) IGNORED
+5. "instant"     (boolean, optional, default=false) Send this transaction as BitGo Instant
+6. "sequenceId"  (string, optional) A client-provided sequence id, which must be unique within this wallet.
+
+Result:
+"transactionid"  (string) The transaction id.
+
+Examples:
+> bitcoin-cli sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 0.1
+> bitcoin-cli sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 0.1 "" "" true
+> bitcoin-cli sendtoaddress "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd" 0.1 "donation" "" true "aslkjl2k3jlsdfk"
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendtoaddress", "params": ["1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd", 0.1, "donation", "", true, "akj23ksjdfoiw"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

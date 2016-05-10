@@ -1479,21 +1479,14 @@ describe('BitGoD', function() {
     it('help', function() {
       return callRPC('help')
       .then(function(result) {
-        _.forEach(bitgod.traditionalBitcoindMethods, function(value, key) {
-          _.contains(result['Traditional bitcoind calls'], key).should.eql(true);
-        });
+        result.should.startWith('== BitGoD ==');
+      });
+    });
 
-        _.forEach(bitgod.traditionalBitcoindMethods, function(value, key) {
-          _.contains(result['Calls specific to BitGo'], key).should.eql(false);
-        });
-
-        _.forEach(bitgod.bitgoSpecificMethods, function(value, key) {
-          _.contains(result['Calls specific to BitGo'], key).should.eql(true);
-        });
-
-        _.forEach(bitgod.bitgoSpecificMethods, function(value, key) {
-          _.contains(result['Traditional bitcoind calls'], key).should.eql(false);
-        });
+    it('help for settoken', function() {
+      return callRPC('help', 'settoken')
+      .then(function(result) {
+        result.should.startWith('settoken "token"');
       });
     });
   });

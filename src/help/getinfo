@@ -1,0 +1,22 @@
+getinfo
+Returns an object containing various state info.
+
+Result:
+{
+  "bitgod" : true             (boolean) indicates this is a bitgod, not bitcoind
+  "version": xxxxx,           (numeric) the server version
+  "testnet": true|false,      (boolean) if the server is using testnet or not
+  "token": true|false,        (boolean) whether a BitGo access token is set
+  "wallet": xxxxx,            (string,boolean) active wallet (if set)
+  "keychain": true|false,     (boolean) is a keychain set?
+  "paytxfee": x.xxxx,         (numeric) the transaction fee set in BTC/kB (using BitGo estimates)
+  "txconfirmtarget": x,       (numeric) number of blocks to target for setting fees
+  "unlocked_until": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked
+  "proxy": {
+                              (mixed) fields passed through from bitcoind we are proxying
+  }
+}
+
+Examples:
+> bitcoin-cli getinfo 
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/
