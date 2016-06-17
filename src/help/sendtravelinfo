@@ -1,0 +1,41 @@
+sendtravelinfo "txid" <travelInfos>
+
+(For enterprises opted-in to Travel Rule only)
+
+Send Travel Rule information for one or more outputs of a transaction you sent.
+
+Arguments:
+1. "txid"                (string, required) The target transaction id (must be a transaction you sent)
+2. "travelInfos"         (array, required)  [ { "outputIndex": OUTPUTINDEX, "fromUserName": "USERNAME", ... } ]
+
+Result:
+{
+  "matched": N_MATCHED,
+  "results": [
+    {
+      "result": {
+        "id": "someid",
+        "date": "2016-06-17T22:11:38.213Z",
+        "fromEnterpriseId": "some-enterprise-id",
+        "fromEnterprise": "BitGo Inc",
+        "toEnterpriseId": "some-other-enterprise-id",
+        "transactionId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "outputIndex": 1,
+        "fromWallet": "fromWalletId",
+        "toAddress": "toAddress",
+        "amount": 10000,
+        "fromPubKey": "03b166f70af3439348b90f0ff1d46940bd35c8b45448ccb23907c17e8a0aaec073",
+        "toPubKey": "0224c707aae47a2d3b1b9a483ba43afc56f7ca1568b68a9e190cb32d522403c1e1",
+        "encryptedTravelInfo": "{\"iv\":\"UuJ6SBEzR2ZZxlC347h4KA==\",\"v\":1,\"iter\":1000,\"ks\":128,\"ts\":64,\"mode\":\"ccm\",\"adata\":\"\",\"cipher\":\"aes\",\"salt\":\"kED5ijg3mn8=\",\"ct\":\"bnGOeyywJesEBB86IEvCyqgVcaSxdjJI+Zpf5fzyET9b2Xf3eUUO7EOTxt8tHO8XiJF6bTZlrMtEe6wgmfD0LS7QF2acpo8KOAMj9f9YdMPlktynkGqHp+dJCJXTZokJ5gNHxWY64tD2yoBkQsypzZol5ZlCd61n1U/K/5+bgQXfrPjlZRlr78J2tHVcN+QwTx1kF1Dj/D8sSrAUB7cywmwOm/laNxcAooZpPUej1zGyPFNbWbT3sfJ3SsFBBCPZCA1oCpQs\"}"
+      }
+    }
+  ]
+}
+
+Examples:
+
+Command line
+> bitcoin-cli sendtravelinfo "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" '[ {"outputIndex": 1, "fromUserName": "Kilroy"} ]'
+
+As a json rpc call
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendtravelinfo", "params": ["ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", '[ {"outputIndex": 1, "fromUserName": "Kilroy"} ]'] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

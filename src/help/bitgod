@@ -4,6 +4,7 @@ freezewallet "seconds"
 getaddressesbyaccount "account"
 getbalance ( "account" minconf )
 getinfo
+getrecipients "txid"
 getinstantguarantee "instantId"
 getnewaddress
 getrawchangeaddress
@@ -20,7 +21,9 @@ listunspent ( minconf maxconf ignoreConfirmsForChange )
 lock 
 sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" )
 sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
+sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
 sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId )
+sendtravelinfo "txid" <travelinfo>
 session
 setkeychain "xprv"
 settoken "token"

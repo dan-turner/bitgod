@@ -1,0 +1,28 @@
+getrecipients "txid" 
+
+(For enterprises opted-in to Travel Rule only)
+
+Identify the recipients that can receive Travel Rule info on a transaction you have sent.
+
+Arguments:
+1. "txid"         (string, required) The transaction id to identify (must be a transaction you sent)
+
+Result:
+[
+  {
+    "outputIndex": 1,
+    "address": "addr",
+    "amount": 10000,
+    "enterpriseId": "enterpriseid",
+    "pubKey": "0224c707aae47a2d3b1b9a483ba43afc56f7ca1568b68a9e190cb32d522403c1e1",
+    "enterprise": "Some Enterprise"
+  }, ...
+]
+
+Examples:
+
+Identify recipients for a txid
+> bitcoin-cli getrecipients ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+As a json rpc call
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getrecipients", "params": ["ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

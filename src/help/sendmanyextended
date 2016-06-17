@@ -1,0 +1,55 @@
+sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
+
+(This call takes identical parameters to sendmany, but provides an extended JSON result)
+
+Send multiple times. Amounts are double-precision floating point numbers.
+
+Recipients may be specified either as an object map of address -> amount (as in bitcoind), or
+more flexibly as an array of objects. The array form allows producing multiple outputs to the
+same destination address, as well as attaching Travel Rule information if desired.
+
+Arguments:
+1. "fromaccount"         (string, required) DEPRECATED. The account to send the funds from. Should be "" for the default account
+2. "recipients"          (array or object, required)
+         OBJECT FORM:    { "ADDRESS1": amount1, "ADDRESS2": amount2, ... }
+         ARRAY FORM :    [ { "address": "ADDRESS1", "amount": amount1 }, { "address": "ADDRESS1", "amount": amount2, "travelInfo": {...} }, ... ]
+                         
+3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.
+4. "comment"             (string, optional) A comment
+5. "instant"             (boolean, optional, default=false) Send this transaction as BitGo Instant
+6. "sequenceId"          (string, optional) A client-provided sequence id, which must be unique within this wallet.
+
+Result:
+{
+  "status": "accepted",
+  "tx": "0100000001c8312a6e406c7c3f298d0ab3daab4b9484a5dd6a5d3f980b051c00b635ffe67800000000fdfd0000473044022015cdbb706cc3c9195b25086f3b3dc6b1964fd69396bcee7d0c8219b028aa827702204bd6418979e16955b39871b7fe38865eac6f5d93e5dfdfbc3cf332b1895743f4014830450221009b7f559f9e42dd5125c2ea27a6c7d187882288b14fef35c0ba03ec18a00d3b47022002a926453dfa8cd14474ac7a664535c63944c5dfe0ee81055357a425f7451e8e014c695221030ab8522ebb06d6a1e1c1437d99d7215a5da763e1a2cfc49e07700937c06c489e2103cdbf8ec73c0b9a37c0abb13eda0a72792d41a719d41824b0431d22e3f3866eab2102b7a51c8f12c0cb513e76a701dbc84f5ed273a5bef70c0acc241ee09f41ec1b4c53aeffffffff022d9b96000000000017a91404245b9506f644badf543b43e53aa118b9f1a41b87102700000000000017a9146ecd8057f4c0e2b820cadbb2cff771ab189948c28700000000",
+  "hash": "88b428c7884723f574dee2c4b0f7c00016aef420f70614ab47ce24c63f1473bb",
+  "instant": false,
+  "fee": 15972,
+  "feeRate": 43998,
+  "travelInfos": [
+    {
+      "fromUserName": "Mickey Mouse",
+      "fromUserAccount": "12345",
+      "fromUserAddress": "1 Magic Kingdom Way",
+      "outputIndex": 1
+    }
+  ],
+  "txid": "88b428c7884723f574dee2c4b0f7c00016aef420f70614ab47ce24c63f1473bb",
+  "travelResult": {
+    "matched": 0,
+    "results": [
+    ]
+  }
+}
+
+Examples:
+
+Send two amounts to two different addresses:
+> bitcoin-cli sendmanyextended "" "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}"
+
+Send two amounts to two the same address using BitGoInstant, using minimum 1-confirm inputs, setting comment and sequence id
+> bitcoin-cli sendmanyextended "" '[ {"address": "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", "amount":0.01, "address": "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", amount:0.02 }]" 1 "testing" true kj2d9sd32
+
+As a json rpc call
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendmanyextended", "params": ["", "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}", 6, "testing"] }' -H 'content-type: text/plain;' http://127.0.0.1:9332/

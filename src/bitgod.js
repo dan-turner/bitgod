@@ -1246,6 +1246,26 @@ BitGoD.prototype.handleGetTransactionBySequenceId = function(sequenceId) {
   });
 };
 
+BitGoD.prototype.handleGetRecipients = function(txid) {
+  var self = this;
+
+  return this.bitgo.travelRule().getRecipients({ txid: txid })
+  .catch(function(err) {
+    throw self.modifyError(err);
+  });
+};
+
+BitGoD.prototype.handleSendTravelInfo = function(txid, travelInfos) {
+  if (typeof(travelInfos) === 'string') {
+    travelInfos = JSON.parse(travelInfos);
+  }
+  var self = this;
+
+  return this.bitgo.travelRule().sendMany({ txid: txid, travelInfos: travelInfos })
+  .catch(function(err) {
+    throw self.modifyError(err);
+  });
+};
 
 BitGoD.prototype.handleSetTxFee = function(btcAmount) {
   this.ensureWallet();
@@ -1346,7 +1366,13 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId) {
+/**
+ * Send many (with extended result)
+ */
+BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfirms, comment, instant, sequenceId) {
+  if (typeof(recipients) === 'string') {
+    recipients = JSON.parse(recipients);
+  }
   this.ensureWallet();
   var self = this;
   this.ensureBlankAccount(account);
@@ -1386,10 +1412,18 @@ BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, com
       result.message = result.error;
       throw result;
     }
-    return result.hash;
+    return result;
   })
   .catch(function(err) {
     throw self.modifyError(err);
+  });
+};
+
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId) {
+  // Call sendManyExtended internally, but return just the txid, to conform to sendmany specification
+  return this.handleSendManyExtended(account, recipients, minConfirms, comment, instant, sequenceId)
+  .then(function(result) {
+    return result.hash;
   });
 };
 
@@ -1677,7 +1711,10 @@ BitGoD.prototype.run = function(testArgString) {
     'getinstantguarantee' : self.handleGetInstantGuarantee,
     'consolidateunspents' : self.handleConsolidateUnspents,
     'fanoutunspents': self.handleFanOutUnspents,
-    'gettransactionbysequenceid' : self.handleGetTransactionBySequenceId
+    'gettransactionbysequenceid' : self.handleGetTransactionBySequenceId,
+    'getrecipients': self.handleGetRecipients,
+    'sendtravelinfo': self.handleSendTravelInfo,
+    'sendmanyextended': self.handleSendManyExtended
   };
 
   self.noLogArgsMethods = ['walletpassphrase', 'settoken', 'setkeychain'];
