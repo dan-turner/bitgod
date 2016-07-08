@@ -1642,7 +1642,6 @@ BitGoD.prototype.run = function(testArgString) {
 
   if (config.logfile) {
     self.logger.add(winston.transports.File, { level: 'info', filename: config.logfile, timestamp: true, colorize: false, json: false });
-    self.logger.remove(winston.transports.Console);
   }
 
   // Read in help
