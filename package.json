@@ -1,6 +1,6 @@
 {
   "name": "bitgod",
-  "version": "1.8.2",
+  "version": "2.2.0",
   "description": "BitGo API proxy conforming to bitcoind JSON-RPC API",
   "main": "src/index.js",
   "bin": {
@@ -28,7 +28,7 @@
   "dependencies": {
     "argparse": "0.1.16",
     "assert": "0.4.9",
-    "bitgo": "1.8.0",
+    "bitgo": "2.2.0",
     "ini": "1.3.2",
     "json-rpc2": "git://github.com/BitGo/node-jsonrpc2.git#httpsRPCServer",
     "lodash": "2.4.1",
