@@ -7,6 +7,8 @@ BitGoD is a NodeJS package and binary which operates a bitcoind-compatible JSON-
 instance, though this is not required, if those API calls are not used. For wallet-related API calls, BitGoD speaks on the back-end to the
 [BitGo REST API](https://www.bitgo.com/api), and allows the client to easily operate a multi-sig wallet as if it were dealing with a standard bitcoind instance.
 
+[![Known Vulnerabilities](https://snyk.io/test/npm/bitgod/badge.svg)](https://snyk.io/test/npm/bitgod)
+
 # Installation
 
 **NodeJS must be installed as a prerequisite.**
