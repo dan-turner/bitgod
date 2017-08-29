@@ -650,9 +650,10 @@ BitGoD.prototype.newAddress = function(chain) {
 };
 
 BitGoD.prototype.handleGetNewAddress = function() {
-  return this.newAddress(0);
+  const isSegwit = this.bitgo.getConstants().enableSegwit;
+  const defaultChain = isSegwit ? 10 : 0; // we use 10 for segwit receive addresses and 0 for non-segwit
+  return this.newAddress(defaultChain);
 };
-
 
 BitGoD.prototype.handleGetAddressesByAccount = function(account) {
   this.ensureWallet();
@@ -675,7 +676,9 @@ BitGoD.prototype.handleGetAddressesByAccount = function(account) {
 };
 
 BitGoD.prototype.handleGetRawChangeAddress = function() {
-  return this.newAddress(1);
+  const isSegwit = this.bitgo.getConstants().enableSegwit;
+  const defaultChain = isSegwit ? 11 : 1; // we use 11 for segwit change addresses and 1 for non-segwit
+  return this.newAddress(defaultChain);
 };
 
 BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms, ignoreConfirmsForChange) {
@@ -747,6 +750,8 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   return this.wallet.unspents()
   .then(function(unspents) {
     return unspents.map(function(u) {
+      const chain = parseInt(u.chainPath.split('/')[1], 10);
+      const isValidChain = _.isNumber(chain) && !isNaN(chain);
       return {
         txid: u.tx_hash,
         vout: u.tx_output_n,
@@ -754,6 +759,8 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
         account: self.masqueradeAccount || '',
         scriptPubKey: u.script,
         redeemScript: u.redeemScript,
+        witnessScript: u.witnessScript,
+        isSegwit: isValidChain && (chain === 10 || chain === 11),
         amount: self.toBTC(u.value),
         satoshis: u.value,  // non-standard field
         confirmations: u.confirmations,
