@@ -1376,7 +1376,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
 /**
  * Send many (with extended result)
  */
-BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfirms, comment, instant, sequenceId) {
+BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize) {
   if (typeof(recipients) === 'string') {
     recipients = JSON.parse(recipients);
   }
@@ -1410,6 +1410,7 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
       instant: !!instant,
+      minUnspentSize: minUnspentSize,
       targetWalletUnspents: self.minUnspentsTarget,
       keychain: self.getSigningKeychain()
     });
@@ -1426,9 +1427,9 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize) {
   // Call sendManyExtended internally, but return just the txid, to conform to sendmany specification
-  return this.handleSendManyExtended(account, recipients, minConfirms, comment, instant, sequenceId)
+  return this.handleSendManyExtended(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize)
   .then(function(result) {
     return result.hash;
   });
