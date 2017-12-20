@@ -681,9 +681,9 @@ BitGoD.prototype.handleGetRawChangeAddress = function() {
   return this.newAddress(defaultChain);
 };
 
-BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms, ignoreConfirmsForChange) {
+BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms, ignoreConfirmsForChange, minUnspentSize) {
   var self = this;
-  return this.handleListUnspent(minConfirms, maxConfirms, undefined, ignoreConfirmsForChange)
+  return this.handleListUnspent(minConfirms, maxConfirms, undefined, ignoreConfirmsForChange, minUnspentSize)
   .then(function(unspents) {
     return self.toBTC(
       Math.round(unspents.reduce(function(prev, unspent) { return prev + unspent.satoshis; }, 0))
@@ -691,12 +691,12 @@ BitGoD.prototype.getBalanceFromUnspents = function(minConfirms, maxConfirms, ign
   });
 };
 
-BitGoD.prototype.getBalance = function(minConfirms) {
+BitGoD.prototype.getBalance = function(minConfirms, minUnspentSize) {
   assert(typeof(minConfirms) !== 'undefined');
   var self = this;
   return Q().then(function() {
     if (minConfirms >= 2) {
-      return self.getBalanceFromUnspents(minConfirms, 9999999, true);
+      return self.getBalanceFromUnspents(minConfirms, 9999999, true, minUnspentSize);
     }
     return self.getWallet()
     .then(function(wallet) {
@@ -708,11 +708,11 @@ BitGoD.prototype.getBalance = function(minConfirms) {
   });
 };
 
-BitGoD.prototype.handleGetBalance = function(account, minConfirms) {
+BitGoD.prototype.handleGetBalance = function(account, minConfirms, minUnspentSize) {
   this.ensureWallet();
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
-  return this.getBalance(minConfirms);
+  return this.getBalance(minConfirms, minUnspentSize);
 };
 
 BitGoD.prototype.handleGetUnconfirmedBalance = function() {
@@ -741,13 +741,13 @@ BitGoD.prototype.handleListAccounts = function(minConfirms) {
   });
 };
 
-BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresses, ignoreConfirmsForChanges) {
+BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresses, ignoreConfirmsForChanges, minUnspentSize) {
   this.ensureWallet();
   var self = this;
   minConfirms = this.getNumber(minConfirms, 1);
   maxConfirms = this.getNumber(maxConfirms, 9999999);
 
-  return this.wallet.unspents()
+  return this.wallet.unspents({minConfirms: minConfirms, minSize: minUnspentSize})
   .then(function(unspents) {
     return unspents.map(function(u) {
       const chain = parseInt(u.chainPath.split('/')[1], 10);
