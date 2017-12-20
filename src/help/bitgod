@@ -2,7 +2,7 @@
 estimatefee nblocks
 freezewallet "seconds"
 getaddressesbyaccount "account"
-getbalance ( "account" minconf )
+getbalance ( "account" minconf minUnspentSize )
 getinfo
 getrecipients "txid"
 getinstantguarantee "instantId"
@@ -17,8 +17,8 @@ help ( "command" )
 listaccounts ( minconf )
 listsinceblock ( "blockhash" target-confirmations )
 listtransactions ( "account" count from minHeight decryptTravelInfo ))
-listunspent ( minconf maxconf ignoreConfirmsForChange )
-lock 
+listunspent ( minconf maxconf ignoreConfirmsForChange minUnspentSize )
+lock
 sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" )
 sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
 sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )

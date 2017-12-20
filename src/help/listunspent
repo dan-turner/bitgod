@@ -1,4 +1,4 @@
-listunspent ( minconf maxconf ignoreConfirmsForChange )
+listunspent ( minconf maxconf ignoreConfirmsForChange minUnspentSize )
 
 Returns array of unspent transaction outputs
 with between minconf and maxconf (inclusive) confirmations.
@@ -10,12 +10,13 @@ Arguments:
 1. minconf                 (numeric, optional, default=1) The minimum confirmations to filter
 2. maxconf                 (numeric, optional, default=9999999) The maximum confirmations to filter
 3. ignoreConfirmsForChange (boolean, optional, default=false) Ignore minimum confirms for change outputs
+4. minUnspentSize          (numeric, optional) minimum value in satoshi to show when listing unspents
 
 Result
 [                   (array of json object)
   {
-    "txid" : "txid",        (string) the transaction id 
-    "vout" : n,               (numeric) the vout value
+    "txid" : "txid",        (string) the transaction id
+    "vout" : n,             (numeric) the vout value
     "address" : "address",  (string) the bitcoin address
     "account" : "account",  (string) DEPRECATED. The associated account, or "" for the default account
     "scriptPubKey" : "key", (string) the script key
@@ -29,6 +30,6 @@ Result
 ]
 
 Examples
-> bitcoin-cli listunspent 
+> bitcoin-cli listunspent
 > bitcoin-cli listunspent 6 9999999 true
 > curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "listunspent", "params": [6, 9999999, true }' -H 'content-type: text/plain;' http://127.0.0.1:9332/
