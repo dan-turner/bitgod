@@ -17,7 +17,7 @@ help ( "command" )
 listaccounts ( minconf )
 listsinceblock ( "blockhash" target-confirmations )
 listtransactions ( "account" count from minHeight decryptTravelInfo ))
-listunspent ( minconf maxconf ignoreConfirmsForChange minUnspentSize )
+listunspent ( minconf maxconf addresses ignoreConfirmsForChange minUnspentSize )
 lock
 sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" )
 sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
