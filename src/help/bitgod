@@ -20,9 +20,9 @@ listtransactions ( "account" count from minHeight decryptTravelInfo ))
 listunspent ( minconf maxconf ignoreConfirmsForChange )
 lock 
 sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" )
-sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
-sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" )
-sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId )
+sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
+sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
+sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId minUnspentSize )
 sendtravelinfo "txid" <travelinfo>
 session
 setkeychain "xprv"

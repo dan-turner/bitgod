@@ -1,4 +1,4 @@
-sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId )
+sendtoaddress "bitcoinaddress" amount ( "comment" "comment-to" instant sequenceId minUnspentSize )
 
 Send an amount to a given address.
 
@@ -10,6 +10,7 @@ Arguments:
 4. "comment-to"  (string, optional) IGNORED
 5. "instant"     (boolean, optional, default=false) Send this transaction as BitGo Instant
 6. "sequenceId"  (string, optional) A client-provided sequence id, which must be unique within this wallet.
+7. minUnspentSize        (numeric, optional) minimum satoshi value to use when selecting unspents
 
 Result:
 "transactionid"  (string) The transaction id.

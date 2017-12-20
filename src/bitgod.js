@@ -1325,7 +1325,7 @@ BitGoD.prototype.handleFanOutUnspents = function(target){
   });
 };
 
-BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant, sequenceId) {
+BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, commentTo, instant, sequenceId, minUnspentSize) {
   this.ensureWallet();
   var self = this;
   var satoshis = Math.round(Number(btcAmount) * 1e8);
@@ -1346,7 +1346,8 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
       instant: !!instant,
-      targetWalletUnspents: self.minUnspentsTarget
+      targetWalletUnspents: self.minUnspentsTarget,
+      minUnspentSize: minUnspentSize
     });
   })
   .then(function(result) {
