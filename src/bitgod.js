@@ -747,7 +747,7 @@ BitGoD.prototype.handleListUnspent = function(minConfirms, maxConfirms, addresse
   minConfirms = this.getNumber(minConfirms, 1);
   maxConfirms = this.getNumber(maxConfirms, 9999999);
 
-  return this.wallet.unspents({minConfirms: minConfirms, minSize:minUnspentSize})
+  return this.wallet.unspents({minConfirms: minConfirms, minSize: minUnspentSize})
   .then(function(unspents) {
     return unspents.map(function(u) {
       const chain = parseInt(u.chainPath.split('/')[1], 10);
