@@ -1387,12 +1387,18 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   minConfirms = this.getNumber(minConfirms, 1);
   minUnspentSize = this.getNumber(minUnspentSize);
 
-  if (enforceMinConfirmsForChange && typeof(enforceMinConfirmsForChange) !== 'boolean') {
-    throw self.error('enforceMinConfirmsForChange flag was not a boolean', -1);
+  if (_.isString(enforceMinConfirmsForChange)) {
+    enforceMinConfirmsForChange = enforceMinConfirmsForChange === 'true' ? true : false;
+  }
+  if (_.isDefined(enforceMinConfirmsForChange) && !_.isBoolean(enforceMinConfirmsForChange)) {
+    throw self.error('enforceMinConfirmsForChange flag was not a boolean, please pass true or false', -1);
   }
 
-  if (instant && typeof(instant) !== 'boolean') {
-    throw self.error('Instant flag was not a boolean', -1);
+  if (_.isString(instant)) {
+    instant = instant === 'true' ? true : false;
+  }
+  if (_.isDefined(instant) && !_.isBoolean(instant)) {
+    throw self.error('instant flag was not a boolean, please pass true or false', -1);
   }
 
   if (recipients instanceof Array) {
@@ -1412,7 +1418,7 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   .then(function(wallet) {
     return self.wallet.sendMany({
       minConfirms: minConfirms,
-      enforceMinConfirmsForChange: enforceMinConfirmsForChange,
+      enforceMinConfirmsForChange: !!enforceMinConfirmsForChange,
       recipients: recipients,
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
