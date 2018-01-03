@@ -1,4 +1,4 @@
-sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
+sendmany "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize enforceMinConfirmsForChange )
 
 Send multiple times. Amounts are double-precision floating point numbers.
 
@@ -11,15 +11,16 @@ Arguments:
 2. "recipients"          (array or object, required)
          OBJECT FORM:    { "ADDRESS1": amount1, "ADDRESS2": amount2, ... }
          ARRAY FORM :    [ { "address": "ADDRESS1", "amount": amount1 }, { "address": "ADDRESS1", "amount": amount2, "travelInfo": {...} }, ... ]
-                         
-3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.
-4. "comment"             (string, optional) A comment
-5. "instant"             (boolean, optional, default=false) Send this transaction as BitGo Instant
-6. "sequenceId"          (string, optional) A client-provided sequence id, which must be unique within this wallet.
-7. minUnspentSize        (numeric, optional) minimum satoshi value to use when selecting unspents
+
+3. minConf                          (numeric, optional, default=1) Only use the balance confirmed at least this many times.
+4. "comment"                        (string, optional) A comment
+5. instant                          (boolean, optional, default=false) Send this transaction as BitGo Instant
+6. "sequenceId"                     (string, optional) A client-provided sequence id, which must be unique within this wallet.
+7. minUnspentSize                   (numeric, optional) minimum satoshi value to use when selecting unspents
+8. enforceMinConfirmsForChange      (boolean, optional, default=false) Require change unspents to adhere to minConf
 
 Result:
-"transactionid"          (string) The transaction id for the send. Only 1 transaction is created regardless of 
+"transactionid"          (string) The transaction id for the send. Only 1 transaction is created regardless of
                                     the number of addresses.
 
 Examples:

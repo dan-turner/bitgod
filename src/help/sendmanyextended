@@ -1,4 +1,4 @@
-sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize )
+sendmanyextended "fromaccount" <recipients> ( minconf "comment" instant "sequenceId" minUnspentSize enforceMinConfirmsForChange )
 
 (This call takes identical parameters to sendmany, but provides an extended JSON result)
 
@@ -9,16 +9,17 @@ more flexibly as an array of objects. The array form allows producing multiple o
 same destination address, as well as attaching Travel Rule information if desired.
 
 Arguments:
-1. "fromaccount"         (string, required) DEPRECATED. The account to send the funds from. Should be "" for the default account
-2. "recipients"          (array or object, required)
-         OBJECT FORM:    { "ADDRESS1": amount1, "ADDRESS2": amount2, ... }
-         ARRAY FORM :    [ { "address": "ADDRESS1", "amount": amount1 }, { "address": "ADDRESS1", "amount": amount2, "travelInfo": {...} }, ... ]
-                         
-3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.
-4. "comment"             (string, optional) A comment
-5. "instant"             (boolean, optional, default=false) Send this transaction as BitGo Instant
-6. "sequenceId"          (string, optional) A client-provided sequence id, which must be unique within this wallet.
-7. minUnspentSize        (numeric, optional) minimum satoshi value to use when selecting unspents
+1. "fromaccount"            (string, required) DEPRECATED. The account to send the funds from. Should be "" for the default account
+2. "recipients"             (array or object, required)
+         OBJECT FORM:       { "ADDRESS1": amount1, "ADDRESS2": amount2, ... }
+         ARRAY FORM :       [ { "address": "ADDRESS1", "amount": amount1 }, { "address": "ADDRESS1", "amount": amount2, "travelInfo": {...} }, ... ]
+
+3. minconf                  (numeric, optional, default=1) Only use the balance confirmed at least this many times.
+4. "comment"                (string, optional) A comment
+5. instant                  (boolean, optional, default=false) Send this transaction as BitGo Instant
+6. "sequenceId"             (string, optional) A client-provided sequence id, which must be unique within this wallet.
+7. minUnspentSize           (numeric, optional) minimum satoshi value to use when selecting unspents
+8. enforceMinConfirmsForChange    (boolean, optional, default=false) Require change unspents to adhere to minConf
 
 Result:
 {
