@@ -1390,14 +1390,14 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   if (_.isString(enforceMinConfirmsForChange)) {
     enforceMinConfirmsForChange = enforceMinConfirmsForChange === 'true' ? true : false;
   }
-  if (_.isDefined(enforceMinConfirmsForChange) && !_.isBoolean(enforceMinConfirmsForChange)) {
+  if (!_.isUndefined(enforceMinConfirmsForChange) && !_.isBoolean(enforceMinConfirmsForChange)) {
     throw self.error('enforceMinConfirmsForChange flag was not a boolean, please pass true or false', -1);
   }
 
   if (_.isString(instant)) {
     instant = instant === 'true' ? true : false;
   }
-  if (_.isDefined(instant) && !_.isBoolean(instant)) {
+  if (!_.isUndefined(instant) && !_.isBoolean(instant)) {
     throw self.error('instant flag was not a boolean, please pass true or false', -1);
   }
 
