@@ -1386,7 +1386,10 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
   minUnspentSize = this.getNumber(minUnspentSize);
-  enforceMinConfirmsForChange = this.getNumber(enforceMinConfirmsForChange, false);
+
+  if (enforceMinConfirmsForChange && typeof(enforceMinConfirmsForChange) !== 'boolean') {
+    throw self.error('enforceMinConfirmsForChange flag was not a boolean', -1);
+  }
 
   if (instant && typeof(instant) !== 'boolean') {
     throw self.error('Instant flag was not a boolean', -1);
