@@ -1385,6 +1385,7 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   var self = this;
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
+  minUnspentSize = this.getNumber(minUnspentSize);
 
   if (instant && typeof(instant) !== 'boolean') {
     throw self.error('Instant flag was not a boolean', -1);
