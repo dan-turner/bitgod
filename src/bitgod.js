@@ -1377,7 +1377,7 @@ BitGoD.prototype.handleSendToAddress = function(address, btcAmount, comment, com
 /**
  * Send many (with extended result)
  */
-BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize) {
+BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize, enforceMinConfirmsForChange) {
   if (typeof(recipients) === 'string') {
     recipients = JSON.parse(recipients);
   }
@@ -1386,6 +1386,7 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   this.ensureBlankAccount(account);
   minConfirms = this.getNumber(minConfirms, 1);
   minUnspentSize = this.getNumber(minUnspentSize);
+  enforceMinConfirmsForChange = this.getNumber(enforceMinConfirmsForChange, false);
 
   if (instant && typeof(instant) !== 'boolean') {
     throw self.error('Instant flag was not a boolean', -1);
@@ -1408,6 +1409,7 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   .then(function(wallet) {
     return self.wallet.sendMany({
       minConfirms: minConfirms,
+      enforceMinConfirmsForChange: enforceMinConfirmsForChange,
       recipients: recipients,
       feeRate: self.txFeeRate,
       feeTxConfirmTarget: self.txConfirmTarget,
@@ -1429,9 +1431,9 @@ BitGoD.prototype.handleSendManyExtended = function(account, recipients, minConfi
   });
 };
 
-BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize) {
+BitGoD.prototype.handleSendMany = function(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize, enforceMinConfirmsForChange) {
   // Call sendManyExtended internally, but return just the txid, to conform to sendmany specification
-  return this.handleSendManyExtended(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize)
+  return this.handleSendManyExtended(account, recipients, minConfirms, comment, instant, sequenceId, minUnspentSize, enforceMinConfirmsForChange)
   .then(function(result) {
     return result.hash;
   });
