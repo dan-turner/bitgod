@@ -1755,7 +1755,7 @@ BitGoD.prototype.run = function(testArgString) {
   .then(function() {
     // Listen
     var port = config.rpcport || (bitgo.getNetwork() === 'bitcoin' ? 9332 : 19332);
-    self.server.listen(port, config.rpcbind);
+    self.httpServer = self.server.listen(port, config.rpcbind);
     self.log('JSON-RPC server active on ' + config.rpcbind + ':' + port);
   })
   .catch(function(err) {
@@ -1764,5 +1764,10 @@ BitGoD.prototype.run = function(testArgString) {
   })
   .done();
 };
+
+BitGoD.prototype.stop = function(callback) {
+  this.httpServer.close(callback);
+  console.info("JSON-RPC server stopped");
+}
 
 exports = module.exports = BitGoD;
